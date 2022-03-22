@@ -5,11 +5,8 @@ import os
 import sys
 from os import path
 
-print(__file__)
 current_dir = path.dirname(path.abspath(__file__))
-print(current_dir)
 while path.split(current_dir)[-1] != r'Heron':
-    #print(current_dir)
     current_dir = path.dirname(current_dir)
 sys.path.insert(0, path.dirname(current_dir))
 
