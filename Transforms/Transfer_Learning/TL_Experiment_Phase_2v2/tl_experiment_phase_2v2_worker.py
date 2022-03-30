@@ -95,8 +95,8 @@ def create_average_speed_of_levers_updating():
         dt_history.get()
     dt_history.put(time.perf_counter() - current_time)
 
-    mean_dt = np.mean(dt_history.queue)
-
+    #mean_dt = np.mean(dt_history.queue)
+    mean_dt = 0.2
     current_time = time.perf_counter()
 
 
@@ -153,6 +153,7 @@ def experiment(data, parameters):
         # The first element of the array is whether the rat is in the poke. The second is the milliseconds it has been
         # pressing either the left or the right lever (one is positive the other negative). If it is 0 then the rat is
         # not pressing a lever
+
         poke_on = message[0]
         lever_press_time = message[1]
     if 'Food_Poke_Update' in topic:
