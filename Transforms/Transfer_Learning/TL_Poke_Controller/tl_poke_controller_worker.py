@@ -10,6 +10,8 @@ sys.path.insert(0, path.dirname(current_dir))
 import numpy as np
 import serial
 import threading
+import pandas as pd
+from datetime import datetime
 from Heron.communication.socket_for_serialization import Socket
 from Heron import general_utils as gu, constants as ct
 
@@ -18,10 +20,13 @@ arduino_serial: serial.Serial
 avail_time: float
 avail_freq: int
 succ_freq: int
+fail_freq: int
 sleep_dt = 0.18
 abort_at_wrong_poke: bool
 air_puff_at_wrong_poke: bool
 trigger_string: str
+pandas_file: str
+pandas_trials_record: pd.DataFrame
 availability_period_is_running = False
 reward_amount = 1
 reward_poke: bool # False is the Old / Right poke, True is the New / Left one
@@ -43,9 +48,12 @@ def initialise(_worker_object):
     global avail_time
     global avail_freq
     global succ_freq
+    global fail_freq
     global abort_at_wrong_poke
     global air_puff_at_wrong_poke
     global trigger_string
+    global pandas_file
+    global pandas_trials_record
     global reward_poke
     global air_puff_thread_is_running
 
@@ -55,10 +63,11 @@ def initialise(_worker_object):
         avail_time = parameters[1]
         avail_freq = parameters[2]
         succ_freq = parameters[3]
-        abort_at_wrong_poke = parameters[4]
-        air_puff_at_wrong_poke = parameters[5]
-        trigger_string = parameters[6]
-        print(avail_freq, succ_freq)
+        fail_freq = parameters[4]
+        abort_at_wrong_poke = parameters[5]
+        air_puff_at_wrong_poke = parameters[6]
+        trigger_string = parameters[7]
+        pandas_file = parameters[8]
     except Exception as e:
         print(e)
         return False
@@ -69,21 +78,21 @@ def initialise(_worker_object):
         print(e)
         return False
 
+    if pandas_file != '':
+        pandas_trials_record = pd.DataFrame(columns=['TimeStamp', 'Start_OR_PelletsGiven'])
+
+    air_puff_thread_is_running = False
     reward_poke = True
     set_poke_tray()
-
-    if air_puff_at_wrong_poke:
-        air_puff_thread_is_running = True
-        air_puff_thread = threading.Thread(group=None, target=start_air_puff_thread)
-        air_puff_thread.start()
 
     return True
 
 
 def failure_sound():
-    arduino_serial.write(freq_to_signal(1000))
-    gu.accurate_delay(1200 * sleep_dt)
-    arduino_serial.write(freq_to_signal(500))
+    if int(fail_freq) != 0:
+        arduino_serial.write(freq_to_signal(fail_freq))
+        gu.accurate_delay(1200 * sleep_dt)
+        arduino_serial.write(freq_to_signal(500))
 
 
 def success_sound():
@@ -99,18 +108,33 @@ def availability_sound():
         arduino_serial.write(freq_to_signal(avail_freq))
 
 
+def add_trial_state_to_trials_record(state):
+    global pandas_trials_record
+    global pandas_file
+
+    if pandas_file != '':
+        time = datetime.now()
+        row = pd.DataFrame(data={pandas_trials_record.columns[0]: [time], pandas_trials_record.columns[1]: [state]})
+        pandas_trials_record = pd.concat([pandas_trials_record, row])
+
+
 def start_availability_thread():
     global arduino_serial
     global availability_period_is_running
     global avail_time
     global avail_freq
     global succ_freq
+    global pandas_file
+    global pandas_trials_record
     global reward_poke
     global abort_at_wrong_poke
 
     total_steps = int(avail_time / sleep_dt)
 
     availability_period_is_running = True
+
+    add_trial_state_to_trials_record('Start')
+
     bytes_in_buffer = arduino_serial.in_waiting
     while bytes_in_buffer:
         bytes_in_buffer = arduino_serial.in_waiting
@@ -155,12 +179,14 @@ def start_availability_thread():
                     availability_period_is_running = False
                 except Exception as e:
                     print(e)
+                add_trial_state_to_trials_record(reward_amount)
         elif step >= total_steps or success_failure_continue == 1:
             try:
                 failure_sound()
                 availability_period_is_running = False
             except Exception as e:
                 print(e)
+            add_trial_state_to_trials_record(0)
         else:
             try:
                 availability_sound()
@@ -210,18 +236,29 @@ def air_puff_if_poking_outside_availability():
         if bytes_in_buffer:
             if '555\r\n' in string_in or '666\r\n' in string_in:
                 arduino_serial.write('y'.encode('utf-8'))
-                gu.accurate_delay(200)
+                gu.accurate_delay(100)
                 arduino_serial.write('z'.encode('utf-8'))
 
 
 def start_availability_or_switch_pokes(data, parameters):
     global availability_period_is_running
+    global air_puff_thread_is_running
     global trigger_string
     global reward_amount
     global reward_poke
 
     topic = data[0].decode('utf-8')
     message = Socket.reconstruct_array_from_bytes_message(data[1:])
+
+    air_puff_at_wrong_poke = parameters[5]
+
+    if air_puff_at_wrong_poke:
+        if not air_puff_thread_is_running:
+            air_puff_thread_is_running = True
+            air_puff_thread = threading.Thread(group=None, target=start_air_puff_thread)
+            air_puff_thread.start()
+    else:
+        air_puff_thread_is_running = False
 
     if 'Start' in topic:
         if not availability_period_is_running:
@@ -250,6 +287,11 @@ def start_availability_or_switch_pokes(data, parameters):
 def on_end_of_life():
     global arduino_serial
     global air_puff_thread_is_running
+    global pandas_file
+    global pandas_trials_record
+
+    if pandas_file != '':
+        pandas_trials_record.to_pickle(pandas_file)
 
     air_puff_thread_is_running = False
     gu.accurate_delay(100)

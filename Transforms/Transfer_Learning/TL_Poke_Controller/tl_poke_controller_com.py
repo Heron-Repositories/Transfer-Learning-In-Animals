@@ -23,10 +23,13 @@ BaseName = 'TL Poke Controller'
 NodeAttributeNames = ['Parameters', 'Start', 'Poke (Left/Right)', 'Finished']
 NodeAttributeType = ['Static', 'Input', 'Input', 'Output']
 ParameterNames = ['Com port', 'Availability Time (s)', 'Availability Freq (Hz)', 'Success Freq (Hz)',
-                  'Abort At Wrong Poke', 'Air Puff On Wrong Poke', 'Trigger String']
-ParameterTypes = ['str', 'float', 'list', 'list', 'bool', 'bool', 'str']
+                  'Failure Freq (Hz)', 'Abort At Wrong Poke', 'Air Puff On Wrong Poke', 'Trigger String',
+                  'Pandas File to Save Trials']
+ParameterTypes = ['str', 'float', 'list', 'list', 'list', 'bool', 'bool', 'str', 'str']
 ParametersDefaultValues = ['COM5', 40, [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000],
-                           [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000], False, False, 'start']
+                           [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000],
+                           [0, 500, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000],
+                           False, False, 'start', '']
 WorkerDefaultExecutable = os.path.join(os.path.dirname(Exec), 'tl_poke_controller_worker.py')
 # </editor-fold>
 
