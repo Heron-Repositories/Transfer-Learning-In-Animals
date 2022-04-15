@@ -76,6 +76,11 @@ def initialise(_worker_object):
     initialise_man_target_trap_object()
 
     current_time = time.perf_counter()
+
+    worker_object.relic_create_parameters_df(no_mtt=no_mtt, reward_on_poke_delay=reward_on_poke_delay,
+                                             levers_state=levers_state, max_distance_to_target=max_distance_to_target,
+                                             speed=speed, variable_targets=variable_targets,
+                                             must_lift_at_target=must_lift_at_target, number_of_pellets=number_of_pellets)
     return True
 
 
