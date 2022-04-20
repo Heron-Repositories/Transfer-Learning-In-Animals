@@ -34,6 +34,15 @@ air_puff_thread_is_running: bool
 air_puff_timer = 0
 
 
+def add_timestamp_to_filename(save_file):
+
+    filename = save_file.split('.')
+    date_time = '{}'.format(datetime.now()).replace(':', '-').replace(' ', '_').split('.')[0]
+    save_file = '{}_{}.{}'.format(filename[0], date_time, filename[1])
+
+    return save_file
+
+
 def freq_to_signal(freq):
     freq = int(freq)
     if freq < 500:
@@ -291,6 +300,7 @@ def on_end_of_life():
     global pandas_trials_record
 
     if pandas_file != '':
+        pandas_file = add_timestamp_to_filename(pandas_file)
         pandas_trials_record.to_pickle(pandas_file)
 
     air_puff_thread_is_running = False
