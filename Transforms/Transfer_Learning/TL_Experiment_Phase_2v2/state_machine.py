@@ -7,11 +7,9 @@ from Heron import constants as ct
 
 class StateMachine(StateMachine):
     number_of_pellets = cfg.number_of_pellets
-    reward_on_poke_delay = cfg.reward_on_poke_delay
 
     command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
     command_to_food_poke = np.array([ct.IGNORE])
-    poke_timer = 0
 
     # This is the value that must be send to the Poke Controller Node in order to trigger its feeding back of its state
     # without also starting a new trial
@@ -44,16 +42,23 @@ class StateMachine(StateMachine):
     fail_to_trap_15 = poke_no_avail.to(failed)
 
     def __init__(self, _reward_on_poke, _dt):
+        super().__init__(StateMachine)
         self.reward_on_poke = _reward_on_poke
         self.dt = _dt
-        super().__init__(StateMachine)
-
+        self.poke_timer = 0
+        self.break_timer = 0  # A timer that counts how many 100us periods the rat is allowed to retract its snout
+                              # without aborting the trial
         self.man_targ_trap = [0, 0, 0]
 
     def on_running_around_no_availability_0(self):
         self.command_to_screens = np.array([ct.IGNORE])
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
-        self.poke_timer = 0
+        if 0 < self.break_timer < 6:
+            self.break_timer += 1
+        else:
+            self.poke_timer = 0
+            self.break_timer = 0
+            self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
 
     def on_just_poked_1(self):
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
@@ -62,9 +67,9 @@ class StateMachine(StateMachine):
         #print('ooo Just poked')
 
     def on_leaving_poke_early_2(self):
-        self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
+        self.command_to_screens = np.array([ct.IGNORE])
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
-        self.poke_timer = 0
+        self.break_timer = 1
         #print('ooo Left too early')
 
     def on_waiting_in_poke_before_availability_3(self):
@@ -105,7 +110,6 @@ class StateMachine(StateMachine):
     def on_running_around_while_availability_8(self):
         self.command_to_screens = np.array([ct.IGNORE])
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
-        #self.poke_timer = 0
 
     def on_too_long_in_poke_9(self):
         self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])

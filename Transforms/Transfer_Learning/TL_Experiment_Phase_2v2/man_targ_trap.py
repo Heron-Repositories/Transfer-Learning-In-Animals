@@ -51,16 +51,17 @@ class MTT:
 
             manipulandum = np.random.randint(target + 11, np.min([target + self.max_distance_to_target + 12, 360]))
 
-        print('!!! Initialising Man, Target, Trap, Up_or_Down to {}, {}, {}, {} !!!'.format(manipulandum, target, trap, self.up_or_down))
+        #print('!!! Initialising Man, Target, Trap, Up_or_Down to {}, {}, {}, {} !!!'.format(manipulandum, target, trap, self.up_or_down))
         return manipulandum, target, trap
 
     def calculate_positions_for_auto_movement(self, current_time, total_time):
         time_steps_required = (total_time - current_time) / self.dt
         position_change_required = self.initial_positions_of_visuals[1] - self.positions_of_visuals[0]
 
-        position_step = position_change_required / time_steps_required
+        if time_steps_required > 0:
+            position_step = position_change_required / time_steps_required
 
-        self.positions_of_visuals[0] = self.positions_of_visuals[0] + position_step
+            self.positions_of_visuals[0] = self.positions_of_visuals[0] + position_step
 
         return self.positions_of_visuals
 

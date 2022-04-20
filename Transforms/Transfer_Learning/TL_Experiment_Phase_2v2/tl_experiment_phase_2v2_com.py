@@ -25,8 +25,10 @@ NodeAttributeNames = ['Parameters', 'Levers Box In', 'Food Poke Update',
 NodeAttributeType = ['Static', 'Input', 'Input', 'Output', 'Output', 'Output']
 ParameterNames = ['Hidden Man/Target/Trap', 'Reward Delay / sec', 'Levers State', 'Max Dist to Target', 'Speed deg/sec',
                   'Variable Targets', 'Must Lift at Target', '# Pellets']
-ParameterTypes = ['bool', 'float', 'list', 'int', 'float', 'bool', 'bool', 'int']
-ParametersDefaultValues = [False, 0.0, ['Off', 'On-Vibrating', 'On-Silent'], 90, 25, False, False, 1]
+ParameterTypes = ['bool', 'str', 'list', 'int', 'float', 'bool', 'bool', 'int']
+ParametersDefaultValues = [False, '0.0',
+                           ['Off-Silent', 'Off-Vibrating', 'On-Vibrating', 'On-Silent'],
+                           90, 25, False, False, 1]
 WorkerDefaultExecutable = os.path.join(os.path.dirname(Exec), 'tl_experiment_phase_2v2_worker.py')
 
 # </editor-fold>
