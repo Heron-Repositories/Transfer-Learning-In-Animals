@@ -43,12 +43,20 @@ def get_parameters(worker_object):
         return False
 
     if predictor is None:
+        yaml_model = worker_object.parameters[0]
+        model_weights = worker_object.parameters[1]
+        num_of_classes = worker_object.parameters[2]
+
         cfg = get_cfg()
-        cfg.merge_from_file(model_zoo.get_config_file(worker_object.parameters[0]))
-        cfg.MODEL.WEIGHTS = worker_object.parameters[1]
-        cfg.MODEL.ROI_HEADS.NUM_CLASSES = worker_object.parameters[2]
+        cfg.merge_from_file(model_zoo.get_config_file(yaml_model))
+        cfg.MODEL.WEIGHTS = model_weights
+        cfg.MODEL.ROI_HEADS.NUM_CLASSES = num_of_classes
         predictor = DefaultPredictor(cfg)
 
+    calculate_image_with_boxes = worker_object.parameters[3]
+    worker_object.relic_create_parameters_df(yaml_model=yaml_model, model_weights=model_weights,
+                                             num_of_classes=num_of_classes,
+                                             calculate_image_with_boxes=calculate_image_with_boxes)
     return True
 
 

@@ -47,6 +47,8 @@ def initialise(worker_object):
     output_state = {output_names[0]: ct.IGNORE, output_names[1]: ct.IGNORE,
                     output_names[2]: ct.IGNORE, output_names[3]: ct.IGNORE}
 
+    worker_object.relic_create_parameters_df(last_motor_state=last_motor_state)
+
     return True
 
 
