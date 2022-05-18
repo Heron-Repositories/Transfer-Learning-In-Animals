@@ -1,4 +1,3 @@
-
 # This is the code of the worker part of the Sink Operation. Here the user needs to write most of the code in order to
 # define the Operation's functionality.
 
@@ -19,6 +18,7 @@ import subprocess
 import zmq
 from Heron.communication.socket_for_serialization import Socket
 from Heron import general_utils as gu
+
 # </editor-fold>
 
 # <editor-fold desc="Global variables.
@@ -26,31 +26,46 @@ unity_socket_pub: zmq.Socket
 unity_socket_rep: zmq.Socket
 unity_process: subprocess.Popen
 monitors: str
+previous_monitors = None
 sprites: dict
 rotation: bool
-opacity: int
+opacity_target_trap: float
+previous_opacity_target_trap = None
+opacity_cue: float
+previous_opacity_cue = None
 screen_colour: int
 main_screen_x_size = 2561 + 1280
 sprite_screens_x_size = 1980
 previous_message = 'Hi'
+
+
+
 # </editor-fold>
 
 
 def get_parameters(_worker_object):
     global monitors
+    global previous_monitors
     global rotation
-    global opacity
+    global opacity_target_trap
+    global previous_opacity_target_trap
+    global opacity_cue
+    global previous_opacity_cue
 
     try:
         parameters = _worker_object.parameters
         monitors = parameters[0]
+        previous_monitors = monitors
         rotation = parameters[1]
-        opacity = parameters[2]
+        opacity_target_trap = parameters[2]
+        previous_opacity_target_trap = opacity_target_trap
+        opacity_cue = parameters[3]
+        previous_opacity_cue = opacity_cue
     except Exception as e:
         print(e)
         return False
 
-    worker_object.relic_create_parameters_df(monitors=monitors, rotation=rotation, opacity=opacity)
+    worker_object.relic_create_parameters_df(monitors=monitors, rotation=rotation, opacity=opacity_target_trap)
 
     return True
 
@@ -99,8 +114,11 @@ def first_communication_with_Unity():
         movement_type_message_out = str('MovementType:{}'.format(rotation))
         unity_socket_pub.send_string(movement_type_message_out)
         gu.accurate_delay(100)
-        opacity_message_out = str('Opacity:{}'.format(opacity))
-        unity_socket_pub.send_string(opacity_message_out)
+        opacity_tt_message_out = str('OpacityTT:{}'.format(opacity_target_trap))
+        unity_socket_pub.send_string(opacity_tt_message_out)
+        gu.accurate_delay(100)
+        opacity_cue_message_out = str('OpacityCue:{}'.format(opacity_cue))
+        unity_socket_pub.send_string(opacity_cue_message_out)
     except Exception as e:
         print(e)
         return False
@@ -109,7 +127,6 @@ def first_communication_with_Unity():
 
 
 def initialise(_worker_object):
-
     if not get_parameters(_worker_object):
         return False
 
@@ -128,18 +145,51 @@ def initialise(_worker_object):
 def work_function(data, parameters):
     global unity_socket_pub
     global previous_message
+    global previous_opacity_target_trap
+    global previous_monitors
+    global previous_opacity_cue
 
     topic = data[0]
-
     message_in = data[1:]
     message_in = Socket.reconstruct_array_from_bytes_message(message_in)[0]
 
-    # Create message out to send to Unity
-    message_out = 'Coordinates:{}'.format(message_in)
-    #if message_out != previous_message:
-    #print('------------ SCREENS = {}'.format(message_out))
-    previous_message = message_out
-    unity_socket_pub.send_string(message_out)
+    monitors = parameters[0]
+    opacity_target_trap = parameters[2]
+    opacity_cue = parameters[3]
+
+    # Parameters updates
+    if monitors != previous_monitors:
+        screens_message_out = str('Screens:{}'.format(monitors))
+        unity_socket_pub.send_string(screens_message_out)
+        previous_monitors = monitors
+
+    if previous_opacity_target_trap != opacity_target_trap:
+        opacity_message_out = str('OpacityTT:{}'.format(opacity_target_trap))
+        unity_socket_pub.send_string(opacity_message_out)
+        previous_opacity_target_trap = opacity_target_trap
+
+    if previous_opacity_cue != opacity_cue or 'OpacityCue' in message_in:
+        opacity_message_out = str('OpacityCue:{}'.format(opacity_target_trap))
+        unity_socket_pub.send_string(opacity_message_out)
+        previous_opacity_target_trap = opacity_target_trap
+
+    # Message in updates
+    if 'OpacityTT' in message_in:
+        opacity = float(message_in.split('=')[1])
+        opacity_message_out = str('OpacityTT:{}'.format(opacity))
+        unity_socket_pub.send_string(opacity_message_out)
+
+    if 'OpacityCue' in message_in:
+        opacity = float(message_in.split('=')[1])
+        opacity_message_out = str('OpacityCue:{}'.format(opacity))
+        unity_socket_pub.send_string(opacity_message_out)
+
+    if 'Cue' in message_in or 'Manipulandum' in message_in or 'Target' in message_in or 'Trap' in message_in:
+        message_out = 'Coordinates:{}'.format(message_in)
+        # if message_out != previous_message:
+        # print('------------ SCREENS = {}'.format(message_out))
+        previous_message = message_out
+        unity_socket_pub.send_string(message_out)
 
 
 def on_end_of_life():
