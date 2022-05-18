@@ -1,12 +1,16 @@
 
+
 # <editor-fold desc="The following 9 lines of code are required to allow Heron to be able to see the Operation without
 # package installation. Do not change.">
 import os
 import sys
 from os import path
 
+print(__file__)
 current_dir = path.dirname(path.abspath(__file__))
+print(current_dir)
 while path.split(current_dir)[-1] != r'Heron':
+    #print(current_dir)
     current_dir = path.dirname(current_dir)
 sys.path.insert(0, path.dirname(current_dir))
 
@@ -25,9 +29,9 @@ BaseName = 'TL Task2 Screens Unity '  # The base name can have spaces.
 
 NodeAttributeNames = ['Parameters', 'Move By']
 NodeAttributeType = ['Static', 'Input']
-ParameterNames = ['Screen', 'T=Rotation (F=Translation)', 'Opacity']
-ParameterTypes = ['list', 'bool', 'float']
-ParametersDefaultValues = [['Both', 'Right', 'Front'], True, 1.0]
+ParameterNames = ['Screen', 'T=Rotation (F=Translation)', 'Opacity TargetTrap', 'Opacity Cue']
+ParameterTypes = ['list', 'bool', 'float', 'float']
+ParametersDefaultValues = [['Both', 'Right', 'Front'], True, 1.0, 1.0]
 WorkerDefaultExecutable = os.path.join(os.path.dirname(Exec), 'tl_task2_screens_unity_worker.py')
 # </editor-fold>
 
