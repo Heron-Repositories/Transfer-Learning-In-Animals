@@ -35,6 +35,7 @@ prev_avail = True
 prev_poke = True
 lever_press_time = 0.0
 start_trial_lever_press_time = 0.0
+interupted_lever_press_time = 0.0
 mean_dt = 0.1
 dt_history = queue.Queue(10)
 current_time: float
@@ -147,6 +148,19 @@ def recalibrate_lever_press_time():
     return lever_press_time_from_end_of_last_trial
 
 
+def lever_press_time_with_interruption(lever_press_time_temp):
+    global lever_press_time
+    global interupted_lever_press_time
+
+    if poke_on != 0 and lever_press_time_temp != 0:
+        lever_press_time = lever_press_time_temp + interupted_lever_press_time
+    if poke_on == 0 and state_machine.break_timer == 0 and lever_press_time_temp == 0:
+        lever_press_time = lever_press_time_temp
+        interupted_lever_press_time = 0
+    if (poke_on != 0 and lever_press_time_temp == 0) or \
+            (poke_on == 0 and state_machine.break_timer > 0):
+        interupted_lever_press_time = lever_press_time
+
 def experiment(data, parameters, relic_update_substate_df):
     global no_mtt
     global reward_on_poke_delay
@@ -189,7 +203,9 @@ def experiment(data, parameters, relic_update_substate_df):
         # not pressing a lever
 
         poke_on = message[0]
-        lever_press_time = message[1]
+        lever_press_time_temp = message[1]
+        lever_press_time_with_interruption(lever_press_time_temp)
+
     if 'Food_Poke_Update' in topic:
         availability_on = message[0]
         #print('GOT NEW AVAILABILITY = {}'.format(availability_on))
