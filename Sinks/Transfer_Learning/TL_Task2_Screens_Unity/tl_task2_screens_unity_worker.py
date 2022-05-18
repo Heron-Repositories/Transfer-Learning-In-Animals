@@ -142,7 +142,7 @@ def initialise(_worker_object):
     return True
 
 
-def work_function(data, parameters):
+def work_function(data, parameters, relic_update_substate_df):
     global unity_socket_pub
     global previous_message
     global previous_opacity_target_trap
@@ -164,25 +164,25 @@ def work_function(data, parameters):
         previous_monitors = monitors
 
     if previous_opacity_target_trap != opacity_target_trap:
-        opacity_message_out = str('OpacityTT:{}'.format(opacity_target_trap))
-        unity_socket_pub.send_string(opacity_message_out)
+        message_out = str('OpacityTT:{}'.format(opacity_target_trap))
+        unity_socket_pub.send_string(message_out)
         previous_opacity_target_trap = opacity_target_trap
 
-    if previous_opacity_cue != opacity_cue or 'OpacityCue' in message_in:
-        opacity_message_out = str('OpacityCue:{}'.format(opacity_target_trap))
-        unity_socket_pub.send_string(opacity_message_out)
-        previous_opacity_target_trap = opacity_target_trap
+    if previous_opacity_cue != opacity_cue:
+        message_out = str('OpacityCue:{}'.format(opacity_cue))
+        unity_socket_pub.send_string(message_out)
+        previous_opacity_cue = opacity_cue
 
     # Message in updates
     if 'OpacityTT' in message_in:
         opacity = float(message_in.split('=')[1])
-        opacity_message_out = str('OpacityTT:{}'.format(opacity))
-        unity_socket_pub.send_string(opacity_message_out)
+        message_out = str('OpacityTT:{}'.format(opacity))
+        unity_socket_pub.send_string(message_out)
 
     if 'OpacityCue' in message_in:
         opacity = float(message_in.split('=')[1])
-        opacity_message_out = str('OpacityCue:{}'.format(opacity))
-        unity_socket_pub.send_string(opacity_message_out)
+        message_out = str('OpacityCue:{}'.format(opacity))
+        unity_socket_pub.send_string(message_out)
 
     if 'Cue' in message_in or 'Manipulandum' in message_in or 'Target' in message_in or 'Trap' in message_in:
         message_out = 'Coordinates:{}'.format(message_in)
@@ -190,6 +190,8 @@ def work_function(data, parameters):
         # print('------------ SCREENS = {}'.format(message_out))
         previous_message = message_out
         unity_socket_pub.send_string(message_out)
+
+    relic_update_substate_df(message_to_Unity=message_out)
 
 
 def on_end_of_life():
