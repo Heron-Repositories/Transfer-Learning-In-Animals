@@ -14,12 +14,14 @@ from Heron import general_utils as gu
 
 
 arduino_serial: serial.Serial
-loop_on = True
+loop_on = False
 buffer = ''
 
 
 def initialise(_worker_object):
     global arduino_serial
+    global loop_on
+
     try:
         parameters = _worker_object.parameters
         com_port = parameters[0]
@@ -31,6 +33,8 @@ def initialise(_worker_object):
         arduino_serial = serial.Serial(com_port)
     except Exception as e:
         print(e)
+
+    loop_on = True
 
     return True
 
@@ -48,16 +52,23 @@ def get_string(string_in):
     return result
 
 
-def get_lever_pressing_time(string):
+def lever_string_to_ints(string):
+    [poke_string, left_time_string, right_time_string, left_press_string, right_press_string] = string.split('#')
+    poke_on = int(not int(poke_string.split('=')[1]))
+    left_time = int(left_time_string.split('=')[1])
+    right_time = -int(right_time_string.split('=')[1])
+    left_press = int(left_press_string.split('=')[1])
+    right_press = -int(right_press_string.split('=')[1])
+
+    return poke_on, left_time, right_time, left_press, right_press
+
+
+def get_lever_pressing_time(poke_on, left_time, right_time):
     """
     Returns the time a Lever is pressed
     :return: A list with whether the poke beam break is broken (if yes then 1) and the time in ms that one of the
     levers is being pressed. Positive time means Left lever, negative means Right
     """
-    [poke_string, left_string, right_string] = string.split('#')
-    poke_on = int(not int(poke_string.split('=')[1]))
-    left_time = int(left_string.split('=')[1])
-    right_time = -int(right_string.split('=')[1])
     if left_time != 0:
         return [poke_on, left_time]
     else:
@@ -69,20 +80,28 @@ def arduino_data_capture(_worker_object):
     global loop_on
 
     worker_object = _worker_object
+
+    while not loop_on:
+        gu.accurate_delay(1)
+
+    _worker_object.relic_create_parameters_df(com_port=_worker_object.parameters[0])
+
     while loop_on:
         try:
-            worker_object.visualisation_on = worker_object.parameters[0]
             bytes_in_buffer = arduino_serial.in_waiting
             if bytes_in_buffer > 0:
                 string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
 
                 final_string = get_string(string_in)
                 if final_string:
-                    poke_and_time = get_lever_pressing_time(final_string)
+                    poke_on, left_time, right_time, left_press, right_press = lever_string_to_ints(final_string)
+
+                    _worker_object.relic_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
+                                                            left_press=left_press, right_press=right_press)
+
+                    poke_and_time = get_lever_pressing_time(poke_on, left_time, right_time)
                     worker_object.worker_visualisable_result = np.array(poke_and_time)
-                    #worker_object.socket_push_data.send_array(worker_object.worker_visualisable_result, copy=False)
                     worker_object.send_data_to_com(worker_object.worker_visualisable_result)
-                    #print('LEVERS SAY = {}'.format(poke_and_time))
         except:
             pass
 

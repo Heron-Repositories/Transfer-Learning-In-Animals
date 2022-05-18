@@ -1,12 +1,21 @@
 
 #define beambreak_in 4
-#define beambreak_out 8  // This is to push the beambreak value to another board (here a Touch Board)
+#define beambreak_out 8
 #define left_lever 5
 #define right_lever 7
+
+#define left_buzzer 10
+#define right_buzzer 12
+
+#define a 97
+#define s 115
+#define d 100
 
 int beambreak_value = 0;
 int left_lever_value = 0;
 int right_lever_value = 0;
+
+int incomingByte = 0;
 
 unsigned long currentTime = 0;
 unsigned long leftLeverStartTime = 0;
@@ -20,9 +29,13 @@ void setup() {
   pinMode(right_lever, INPUT);
   pinMode(beambreak_in, INPUT_PULLUP);
   pinMode(beambreak_out, OUTPUT);
+  pinMode(left_buzzer, OUTPUT);
+  pinMode(right_buzzer, OUTPUT);
 }
 
 void loop() {
+
+  // Code that deals with the poke and the levers press
 
   beambreak_value = digitalRead(beambreak_in);
   digitalWrite(beambreak_out, beambreak_value);
@@ -69,11 +82,28 @@ void loop() {
 
   String string_out = "Poke=";
     string_out.concat(beambreak_value);
-    string_out.concat("#Left=");
+    string_out.concat("#LeftTime=");
     string_out.concat(leftLeverPressedTime);
-    string_out.concat("#Right=");
+    string_out.concat("#RightTime=");
     string_out.concat(rightLeverPressedTime);
-    Serial.println(string_out);
+    string_out.concat("#LeftPress=");
+    //Serial.println(string_out);
+
+  // Code that deals with the buzers and valve
+  if (Serial.available() > 0) {
+    incomingByte = Serial.read();
+
+    if (incomingByte == a)
+      digitalWrite(left_buzzer, HIGH);
+    if (incomingByte == s)
+      digitalWrite(right_buzzer, HIGH);
+    if (incomingByte == d)
+    {
+      digitalWrite(left_buzzer, LOW);
+      digitalWrite(right_buzzer, LOW);
+    }
+  }
+
 
   delay(100);
 

@@ -62,8 +62,8 @@ void setup() {
     MPR121.restoreSavedThresholds();
     MPR121_Datastream.begin(&Serial);
   }else{
-    MPR121.setTouchThreshold(40);
-    MPR121.setReleaseThreshold(20);
+    MPR121.setTouchThreshold(80);
+    MPR121.setReleaseThreshold(40);
   }
 
   MPR121.setFFI(FFI_10);
@@ -128,10 +128,14 @@ void loop() {
 
   String string_out = "Poke=";
     string_out.concat(beambreak_value);
-    string_out.concat("#Left=");
+    string_out.concat("#LeftTime=");
     string_out.concat(leftLeverPressedTime);
-    string_out.concat("#Right=");
+    string_out.concat("#RightTime=");
     string_out.concat(rightLeverPressedTime);
+    string_out.concat("#LeftPress=");
+    string_out.concat(MPR121.getTouchData(0));
+    string_out.concat("#RightPress=");
+    string_out.concat(MPR121.getTouchData(11));
     Serial.println(string_out);
 
   delay(100);
