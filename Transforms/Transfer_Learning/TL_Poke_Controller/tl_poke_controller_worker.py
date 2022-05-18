@@ -32,6 +32,7 @@ reward_amount = 1
 reward_poke: bool # False is the Old / Right poke, True is the New / Left one
 air_puff_thread_is_running: bool
 air_puff_timer = 0
+succesful_trials = 0
 
 
 def add_timestamp_to_filename(save_file):
@@ -142,6 +143,7 @@ def start_availability_thread():
     global pandas_trials_record
     global reward_poke
     global abort_at_wrong_poke
+    global succesful_trials
 
     total_steps = int(avail_time / sleep_dt)
 
@@ -191,6 +193,8 @@ def start_availability_thread():
                         arduino_serial.write('a'.encode('utf-8'))
                         gu.accurate_delay(500)
                     availability_period_is_running = False
+                    succesful_trials += 1
+                    print(succesful_trials)
                 except Exception as e:
                     print(e)
                 add_trial_state_to_trials_record(reward_amount)
