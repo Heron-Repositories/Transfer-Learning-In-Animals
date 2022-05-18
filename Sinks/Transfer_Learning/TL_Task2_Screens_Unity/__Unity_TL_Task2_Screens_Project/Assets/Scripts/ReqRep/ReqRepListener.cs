@@ -25,6 +25,8 @@ public class ReqRepListener
         var timeout = new TimeSpan(0, 0, 2);
         using (var socket = new RequestSocket())
         {
+            socket.Options.SendHighWatermark = 1;
+            socket.Options.ReceiveHighWatermark = 1;
             socket.Connect($"tcp://{_host}:{_port}");
             if (socket.TrySendFrame("Unity has started"))
             {

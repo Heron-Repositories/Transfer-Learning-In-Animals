@@ -43,7 +43,7 @@ public class PubSubListener
         AsyncIO.ForceDotNet.Force();
         using (var subSocket = new SubscriberSocket())
         {
-            subSocket.Options.ReceiveHighWatermark = 1000;
+            subSocket.Options.ReceiveHighWatermark = 1;
             subSocket.Connect($"tcp://{_host}:{_port}");
             subSocket.SubscribeToAnyTopic();
             while (!_clientCancelled)

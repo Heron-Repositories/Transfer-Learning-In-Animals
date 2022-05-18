@@ -17,7 +17,8 @@ public class EventManager : MonoBehaviour
     public InteractableObjectEvent onUpdatedMotion;
     public InteractableObjectEvent onUpdateMovementType;
     public InteractableObjectEvent onUpdateScreensOn;
-    public InteractableObjectEvent onUpdateOpacity;
+    public InteractableObjectEvent onUpdateTargetTrapOpacity;
+    public InteractableObjectEvent onUpdateCueOpacity;
     public InteractableObjectEvent onCueAnimate;
 
 
@@ -36,7 +37,8 @@ public class EventManager : MonoBehaviour
             onUpdatedMotion = new InteractableObjectEvent();
             onUpdateMovementType = new InteractableObjectEvent();
             onUpdateScreensOn = new InteractableObjectEvent();
-            onUpdateOpacity = new InteractableObjectEvent();
+            onUpdateTargetTrapOpacity = new InteractableObjectEvent();
+            onUpdateCueOpacity = new InteractableObjectEvent();
             onCueAnimate = new InteractableObjectEvent();
 
         }

@@ -56,9 +56,14 @@ public class PubSubClient : MonoBehaviour
             EventManager.Instance.onUpdateMovementType.Invoke(message_data);
         }
 
-        if (message.Contains("Opacity:"))
+        if (message.Contains("OpacityTT:"))
         {
-            EventManager.Instance.onUpdateOpacity.Invoke(message_data);
+            EventManager.Instance.onUpdateTargetTrapOpacity.Invoke(message_data);
+        }
+
+        if (message.Contains("OpacityCue:"))
+        {
+            EventManager.Instance.onUpdateCueOpacity.Invoke(message_data);
         }
 
         if (message.Contains("Coordinates:"))

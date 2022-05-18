@@ -17,7 +17,8 @@ public class SpriteController : MonoBehaviour
         EventManager.Instance.onUpdatedMotion.AddListener(DoMotion);
         EventManager.Instance.onUpdateMovementType.AddListener(DoMotionTypeSelection);
         EventManager.Instance.onUpdateScreensOn.AddListener(DoScreensSelection);
-        EventManager.Instance.onUpdateOpacity.AddListener(DoOpacitySelection);
+        EventManager.Instance.onUpdateTargetTrapOpacity.AddListener(DoTargetTrapOpacityUpdate);
+        EventManager.Instance.onUpdateCueOpacity.AddListener(DoCueOpacityUpdate);
 
         movementType = true; // That means rotation
         shownOnScreen = false;
@@ -54,14 +55,29 @@ public class SpriteController : MonoBehaviour
         //}
     }
 
-    void DoOpacitySelection(string _opacity)
+    void DoTargetTrapOpacityUpdate(string _opacity)
     {
-        float opacity = float.Parse(_opacity);
+        //Debug.Log(_opacity);
         if (transform.name.Contains("Target") || transform.name.Contains("Trap"))
         {
-            Color current_color = transform.GetComponent<Image>().color;
-            transform.GetComponent<Image>().color = new Color(current_color.r, current_color.g, current_color.b, opacity);
+            DoOpacityUpdate(_opacity);
         }
+    }
+
+    void DoCueOpacityUpdate(string _opacity)
+    {
+        //Debug.Log(_opacity);
+        if (transform.name.Contains("Cue"))
+        {
+            DoOpacityUpdate(_opacity);
+        }
+    }
+
+    void DoOpacityUpdate(string _opacity)
+    {
+        float opacity = float.Parse(_opacity);
+        Color current_color = transform.GetComponent<Image>().color;
+        transform.GetComponent<Image>().color = new Color(current_color.r, current_color.g, current_color.b, opacity);
     }
 
     List<int> GetAllSpritesStates(string sprites_message)
@@ -93,11 +109,11 @@ public class SpriteController : MonoBehaviour
     void HideOrShow(int state)
     {
         this.gameObject.SetActive(false);
-        Debug.Log(string.Format("{0} is {1} and screen is {2}", transform.name, state, shownOnScreen));
+        //Debug.Log(string.Format("{0} is {1} and screen is {2}", transform.name, state, shownOnScreen));
         if (state != 0 && shownOnScreen)
         {
             this.gameObject.SetActive(true);
-            Debug.Log(string.Format("{0} is made Active", transform.name));
+            //Debug.Log(string.Format("{0} is made Active", transform.name));
         }
     }
 
@@ -107,7 +123,7 @@ public class SpriteController : MonoBehaviour
         //Debug.Log(state);
         if (transform.name.Contains("Cue") && shownOnScreen && state == 1)
         {
-            Debug.Log("Anim invoked");
+           // Debug.Log("Anim invoked");
             if (transform.name.Contains("Right"))
                 EventManager.Instance.onCueAnimate.Invoke("Right");
             if (transform.name.Contains("Front"))
