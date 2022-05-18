@@ -27,7 +27,9 @@ ParameterNames = ['Hidden Man/Target/Trap', 'Reward Delay / sec', 'Levers State'
                   'Variable Targets', 'Must Lift at Target', '# Pellets']
 ParameterTypes = ['bool', 'str', 'list', 'int', 'float', 'bool', 'bool', 'int']
 ParametersDefaultValues = [False, '0.0',
-                           ['Off-Silent', 'Off-Vibrating', 'On-Vibrating', 'On-Silent'],
+                           ['Off-Silent', 'Off-Vibrating',
+                            'On-Vibrating-Left', 'On-Vibrating-Right', 'On-Vibrating-Random',
+                            'On-Silent-Left', 'On-Silent-Right', 'On-Silent-Random'],
                            90, 25, False, False, 1]
 WorkerDefaultExecutable = os.path.join(os.path.dirname(Exec), 'tl_experiment_phase_2v2_worker.py')
 

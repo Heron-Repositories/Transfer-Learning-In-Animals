@@ -20,7 +20,10 @@ import man_targ_trap as mtt
 
 no_mtt: bool
 reward_on_poke_delay: float
-levers_state: int  # 0 = Off, 1 = On-Vibrating, 2 = On-Silent
+levers_state: int
+levers_states_dict = {'Off-Silent': 0, 'Off-Vibrating': 1,
+                      'On-Vibrating-Left': 2, 'On-Vibrating-Right': 3, 'On-Vibrating-Random': 4,
+                      'On-Silent-Left': 5, 'On-Silent-Right': 6, 'On-Silent-Random': 7}
 max_distance_to_target: int
 speed: float
 variable_targets: bool
@@ -53,7 +56,6 @@ def initialise(_worker_object):
     global state_machine
     global current_time
 
-    levers_states_dict = {'Off-Silent': 0, 'Off-Vibrating': 1, 'On-Vibrating': 2, 'On-Silent': 3}
     try:
         parameters = _worker_object.parameters
         no_mtt = parameters[0]
@@ -99,7 +101,8 @@ def initialise_man_target_trap_object():
     global man_targ_trap
 
     if not no_mtt:
-        man_targ_trap = mtt.MTT(variable_targets, max_distance_to_target, mean_dt, speed, must_lift_at_target)
+        up_or_down = generate_up_or_down()
+        man_targ_trap = mtt.MTT(variable_targets, max_distance_to_target, mean_dt, speed, must_lift_at_target, up_or_down)
 
 
 def create_average_speed_of_levers_updating():
@@ -114,6 +117,19 @@ def create_average_speed_of_levers_updating():
     #mean_dt = np.mean(dt_history.queue)
     #mean_dt = 0.2
     current_time = time.perf_counter()
+
+
+def generate_up_or_down():
+    global levers_state
+    result = -1
+    if levers_state == 2 or levers_state == 5:
+        result = 0
+    if levers_state == 3 or levers_state == 6:
+        result = 1
+    if levers_state == 4 or levers_state == 7:
+        result = np.random.binomial(n=1, p=0.5)
+
+    return result
 
 
 def recalibrate_lever_press_time():
@@ -131,10 +147,11 @@ def recalibrate_lever_press_time():
     return lever_press_time_from_end_of_last_trial
 
 
-def experiment(data, parameters):
+def experiment(data, parameters, relic_update_substate_df):
     global no_mtt
     global reward_on_poke_delay
     global levers_state
+    global max_distance_to_target
     global speed
     global variable_targets
     global number_of_pellets
@@ -148,7 +165,8 @@ def experiment(data, parameters):
     global man_targ_trap
 
     try:
-        #reward_on_poke_delay = parameters[1]
+        levers_state = levers_states_dict[parameters[2]]
+        max_distance_to_target = parameters[3]
         speed = parameters[4]
         cfg.number_of_pellets = parameters[7]
     except:
@@ -190,6 +208,8 @@ def experiment(data, parameters):
 
     if not poke_on and not availability_on:
         if state_machine.current_state == state_machine.no_poke_no_avail:
+            if state_machine.break_timer == 6:
+                initialise_man_target_trap_object()
             state_machine.running_around_no_availability_0()
 
         elif state_machine.current_state == state_machine.poke_no_avail:
@@ -218,7 +238,8 @@ def experiment(data, parameters):
                 reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[1])
                 man_targ_trap.back_to_initial_positions()
                 state_machine.man_targ_trap = man_targ_trap.positions_of_visuals
-                print(reward_on_poke_delay)
+                if not no_mtt and levers_state < 2:  # print delay only for Stage 3
+                    print(reward_on_poke_delay)
             state_machine.just_poked_1()
 
         # The state "Poke No Availability" (P_NA) is where most of the logic happens. Here is where the animal has to
@@ -240,6 +261,8 @@ def experiment(data, parameters):
                                                                             reward_on_poke_delay)
 
                     if levers_state == 1:  # If the levers state is Off-Vibrating turn vibration on.
+                        # and at Stage 3 always keep the trial (up or down) random
+                        man_targ_trap.up_or_down = np.random.binomial(n=1, p=0.5)
                         if man_targ_trap.up_or_down:
                             command_to_vibration_arduino_controller = np.array(['a'])
                         else:
@@ -254,7 +277,7 @@ def experiment(data, parameters):
 
                     state_machine.man_targ_trap = \
                         man_targ_trap.calculate_positions_for_levers_movement(lever_press_time_from_end_of_last_trial)
-                    if levers_state == 2:  # If the levers state is On-Vibrating ...
+                    if 2 <= levers_state <= 4:  # If the levers state is On-Vibrating ...
                         # ... turn vibration on.
                         if man_targ_trap.up_or_down:
                             command_to_vibration_arduino_controller = np.array(['a'])
@@ -293,9 +316,19 @@ def experiment(data, parameters):
         elif state_machine.current_state == state_machine.no_poke_avail:
             state_machine.poking_again_while_availability_7()
 
+    current_state = [state_machine.current_state.name, state_machine.current_state.identifier,
+                     state_machine.current_state.value, state_machine.current_state.initial]
+    relic_update_substate_df(state=current_state,
+                             command_to_screens=state_machine.command_to_screens,
+                             command_to_food_poke=state_machine.command_to_food_poke[0],
+                             command_to_vibration_arduino_controller=command_to_vibration_arduino_controller[0],
+                             reward_dealy=reward_on_poke_delay,
+                             reward_availability=availability_on)
+
     result = [state_machine.command_to_screens,
               state_machine.command_to_food_poke,
               command_to_vibration_arduino_controller]
+
     #print(' ooo Result = {}'.format(result))
     return result
 

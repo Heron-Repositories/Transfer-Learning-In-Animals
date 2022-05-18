@@ -5,14 +5,14 @@ import copy
 
 class MTT:
 
-    def __init__(self, _variable_targets, _max_distance_to_target, _dt, _man_speed, _must_lift_at_target):
+    def __init__(self, _variable_targets, _max_distance_to_target, _dt, _man_speed, _must_lift_at_target, up_or_down):
         self.variable_targets = _variable_targets
         self.max_distance_to_target = _max_distance_to_target
         self.dt = _dt
         self.man_speed = _man_speed
         self.must_lift_at_target = _must_lift_at_target
         self.positions_of_visuals = np.empty(3)
-        self.up_or_down = True
+        self.up_or_down = up_or_down
 
         if self.variable_targets:
             manipulandum, target, trap = self.initialise_trial_with_variable_target_trap()
@@ -25,7 +25,6 @@ class MTT:
     def initialise_trial_with_variable_target_trap(self):
 
         manipulandum = np.random.randint(360 - 80, 360 - 9)
-        self.up_or_down = np.random.binomial(n=1, p=0.5)
 
         if self.up_or_down:
             target = np.random.randint(manipulandum + 11, np.min([manipulandum + self.max_distance_to_target + 12, 0]))
@@ -38,8 +37,6 @@ class MTT:
 
     def initialise_trial_with_constant_target_trap(self):
 
-        self.up_or_down = np.random.binomial(n=1, p=0.5)
-
         if self.up_or_down:
             target = 360
             trap = 360 - 90
@@ -51,7 +48,6 @@ class MTT:
 
             manipulandum = np.random.randint(target + 11, np.min([target + self.max_distance_to_target + 12, 360]))
 
-        #print('!!! Initialising Man, Target, Trap, Up_or_Down to {}, {}, {}, {} !!!'.format(manipulandum, target, trap, self.up_or_down))
         return manipulandum, target, trap
 
     def calculate_positions_for_auto_movement(self, current_time, total_time):
