@@ -214,8 +214,9 @@ def experiment(data, parameters, relic_update_substate_df):
         # not pressing a lever
 
         poke_on = message[0]
-        lever_press_time_temp = message[1]
-        lever_press_time_with_interruption(lever_press_time_temp)
+        lever_press_time = message[1]
+        #lever_press_time_temp = message[1]
+        #lever_press_time_with_interruption(lever_press_time_temp)
         #print(lever_press_time_temp, lever_press_time)
 
     if 'Food_Poke_Update' in topic:
@@ -307,6 +308,8 @@ def experiment(data, parameters, relic_update_substate_df):
 
                     state_machine.man_targ_trap = \
                         man_targ_trap.calculate_positions_for_levers_movement(lever_press_time_from_end_of_last_trial)
+                    #state_machine.man_targ_trap = \
+                     #      man_targ_trap.calculate_positions_for_levers_movement(lever_press_time)
                     if 2 <= levers_state <= 4:  # If the levers state is On-Vibrating ...
                         # ... turn vibration on.
                         if man_targ_trap.up_or_down:

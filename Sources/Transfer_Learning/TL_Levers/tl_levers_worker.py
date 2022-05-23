@@ -10,17 +10,22 @@ sys.path.insert(0, path.dirname(current_dir))
 import copy
 import numpy as np
 import serial
+from statemachine import StateMachine
 from Heron import general_utils as gu
+import state_machine as sm
 
 
 arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
+state_machine = sm.LeversStateMachine(_grace_threshold=6)
+time_step = 108  # Milliseconds
 
 
 def initialise(_worker_object):
     global arduino_serial
     global loop_on
+    global state_machine
 
     try:
         parameters = _worker_object.parameters
@@ -63,6 +68,7 @@ def lever_string_to_ints(string):
     return poke_on, left_time, right_time, left_press, right_press
 
 
+'''
 def get_lever_pressing_time(poke_on, left_time, right_time):
     """
     Returns the time a Lever is pressed
@@ -73,11 +79,21 @@ def get_lever_pressing_time(poke_on, left_time, right_time):
         return [poke_on, left_time]
     else:
         return [poke_on, right_time]
+'''
+
+def get_lever_pressing_time():
+    global state_machine
+
+    poke = state_machine.poke
+    lever_time = state_machine.lever_press_time * time_step
+
+    return [poke, lever_time]
 
 
 def arduino_data_capture(_worker_object):
     global arduino_serial
     global loop_on
+    global state_machine
 
     worker_object = _worker_object
 
@@ -99,7 +115,10 @@ def arduino_data_capture(_worker_object):
                     _worker_object.relic_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
                                                             left_press=left_press, right_press=right_press)
 
-                    poke_and_time = get_lever_pressing_time(poke_on, left_time, right_time)
+                    state_machine.do_transition(poke_on, left_press, right_press)
+
+                    poke_and_time = get_lever_pressing_time()
+
                     worker_object.worker_visualisable_result = np.array(poke_and_time)
                     worker_object.send_data_to_com(worker_object.worker_visualisable_result)
         except:

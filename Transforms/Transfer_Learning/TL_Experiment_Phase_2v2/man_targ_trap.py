@@ -45,14 +45,14 @@ class MTT:
             target = 360
             trap = 360 - 90
 
-            manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 10]),
-                                             target - np.max([self.min_distance_to_target, 10]))
+            manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
+                                             target - np.max([self.min_distance_to_target, 3]))
         else:
             target = 360 - 90
             trap = 360
 
-            manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 10]),
-                                             np.min([target + self.max_distance_to_target, trap - 10]))
+            manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
+                                             np.min([target + self.max_distance_to_target, trap - 3]))
 
         return manipulandum, target, trap
 
