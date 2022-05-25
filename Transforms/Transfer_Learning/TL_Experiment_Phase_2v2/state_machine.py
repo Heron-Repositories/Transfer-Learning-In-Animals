@@ -53,11 +53,11 @@ class StateMachine(StateMachine):
     def on_running_around_no_availability_0(self):
         self.command_to_screens = np.array([ct.IGNORE])
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
-        if self.break_timer >= 3:
+        if self.break_timer >= 6:
             self.poke_timer = 0
             self.break_timer = 0
             self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
-        if 0 < self.break_timer < 3:
+        if 0 < self.break_timer < 6:
             self.break_timer += 1
 
     def on_just_poked_1(self):

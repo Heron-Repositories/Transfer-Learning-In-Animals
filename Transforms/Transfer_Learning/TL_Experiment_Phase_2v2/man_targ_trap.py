@@ -5,8 +5,10 @@ import copy
 
 class MTT:
 
-    def __init__(self, _variable_targets, _max_distance_to_target, _dt, _man_speed, _must_lift_at_target, up_or_down):
+    def __init__(self, _variable_targets, _min_distance_to_target, _max_distance_to_target,
+                 _dt, _man_speed, _must_lift_at_target, up_or_down):
         self.variable_targets = _variable_targets
+        self.min_distance_to_target = _min_distance_to_target
         self.max_distance_to_target = _max_distance_to_target
         self.dt = _dt
         self.man_speed = _man_speed
@@ -27,11 +29,13 @@ class MTT:
         manipulandum = np.random.randint(360 - 80, 360 - 9)
 
         if self.up_or_down:
-            target = np.random.randint(manipulandum + 11, np.min([manipulandum + self.max_distance_to_target + 12, 0]))
+            target = np.random.randint(manipulandum + self.min_distance_to_target + 11,
+                                       np.min([manipulandum + self.max_distance_to_target + 12, 0]))
             trap = np.random.randint(360 - 90, manipulandum - 9)
         else:
             trap = np.random.randint(manipulandum + 11, 360)
-            target = np.random.randint(np.max([manipulandum - self.max_distance_to_target - 10, 360 - 90]), manipulandum - 9)
+            target = np.random.randint(np.max([manipulandum - self.max_distance_to_target - 10, 360 - 90]),
+                                       manipulandum - self.min_distance_to_target - 9)
 
         return manipulandum, target, trap
 
@@ -41,12 +45,14 @@ class MTT:
             target = 360
             trap = 360 - 90
 
-            manipulandum = np.random.randint(np.max([target - self.max_distance_to_target - 10, 360 - 90]), target - 9)
+            manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
+                                             target - np.max([self.min_distance_to_target, 3]))
         else:
             target = 360 - 90
             trap = 360
 
-            manipulandum = np.random.randint(target + 11, np.min([target + self.max_distance_to_target + 12, 360]))
+            manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
+                                             np.min([target + self.max_distance_to_target, trap - 3]))
 
         return manipulandum, target, trap
 
@@ -77,7 +83,7 @@ class MTT:
                 self.positions_of_visuals[0] = self.positions_of_visuals[1]
             elif self.has_man_reached_trap():
                 self.positions_of_visuals[0] = self.positions_of_visuals[2]
-
+        #print(levers_pressed_time, self.positions_of_visuals[0])
         return self.positions_of_visuals
 
     def has_man_reached_target(self):
