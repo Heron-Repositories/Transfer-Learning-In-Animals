@@ -65,7 +65,9 @@ def get_parameters(_worker_object):
         print(e)
         return False
 
-    worker_object.relic_create_parameters_df(monitors=monitors, rotation=rotation, opacity=opacity_target_trap)
+    worker_object.relic_create_parameters_df(monitors=monitors, rotation=rotation,
+                                             opacity_target_trap=opacity_target_trap,
+                                             opacity_cue=opacity_cue)
 
     return True
 
