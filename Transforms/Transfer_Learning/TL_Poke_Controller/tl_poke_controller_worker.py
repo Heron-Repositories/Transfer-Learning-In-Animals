@@ -280,6 +280,8 @@ def start_availability_or_switch_pokes(data, parameters):
 
     if 'Start' in topic:
         if not availability_period_is_running:
+            if len(message.shape) > 1:  # If the message is sent as a double array
+                message = message[0]
             if trigger_string == message[0] or trigger_string == 'number':
                 if trigger_string == 'number':
                     reward_amount = int(message[0])
