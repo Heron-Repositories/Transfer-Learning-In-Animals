@@ -42,6 +42,8 @@ dt_history = queue.Queue(10)
 current_time: float
 state_machine: StateMachine
 man_targ_trap: mtt.MTT
+time_steps_of_wait_after_failure = 12  # This needs to be double the grace period which is defined in the TL_Levers
+counter_after_failure = 0
 
 
 def initialise(_worker_object):
@@ -187,6 +189,7 @@ def experiment(data, parameters, relic_update_substate_df):
     global prev_avail
     global prev_poke
     global man_targ_trap
+    global counter_after_failure
 
     try:
         levers_state = levers_states_dict[parameters[2]]
@@ -237,7 +240,7 @@ def experiment(data, parameters, relic_update_substate_df):
 
     if not poke_on and not availability_on:
         if state_machine.current_state == state_machine.no_poke_no_avail:
-            if state_machine.break_timer == 6:
+            if state_machine.break_timer >= 6:
                 initialise_man_target_trap_object()
             state_machine.running_around_no_availability_0()
 
@@ -254,8 +257,12 @@ def experiment(data, parameters, relic_update_substate_df):
                 state_machine.too_long_running_around_10()
 
         elif state_machine.current_state == state_machine.failed:
-            state_machine.initialise_after_fail_13()
-            initialise_man_target_trap_object()
+            state_machine.wait_on_fail_16()
+            counter_after_failure += 1
+            if counter_after_failure > time_steps_of_wait_after_failure:
+                state_machine.initialise_after_fail_13()
+                #initialise_man_target_trap_object()
+                counter_after_failure = 0
 
         elif state_machine.current_state == state_machine.succeeded:
             state_machine.initialise_after_success_14()
@@ -332,9 +339,13 @@ def experiment(data, parameters, relic_update_substate_df):
             state_machine.too_long_running_around_10()
 
         elif state_machine.current_state == state_machine.failed:
-            state_machine.poking_at_fail_12()
-            start_trial_lever_press_time = lever_press_time
-            initialise_man_target_trap_object()
+            state_machine.wait_on_fail_16()
+            counter_after_failure += 1
+            if counter_after_failure > time_steps_of_wait_after_failure:
+                state_machine.poking_at_fail_12()
+                start_trial_lever_press_time = lever_press_time
+                initialise_man_target_trap_object()
+                counter_after_failure = 0
 
     elif not poke_on and availability_on:
         if state_machine.current_state == state_machine.poke_avail:
@@ -364,6 +375,7 @@ def experiment(data, parameters, relic_update_substate_df):
               command_to_vibration_arduino_controller]
 
     #print(' ooo Result = {}'.format(result))
+    #print(state_machine.current_state)
     return result
 
 

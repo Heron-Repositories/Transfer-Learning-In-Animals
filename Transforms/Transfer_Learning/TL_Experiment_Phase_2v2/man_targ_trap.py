@@ -24,6 +24,8 @@ class MTT:
         self.positions_of_visuals = np.array([manipulandum, target, trap])
         self.initial_positions_of_visuals = copy.copy(self.positions_of_visuals)
 
+        self.angle_dif_between_man_and_target_trap = 5
+
     def initialise_trial_with_variable_target_trap(self):
 
         manipulandum = np.random.randint(360 - 80, 360 - 9)
@@ -89,7 +91,8 @@ class MTT:
     def has_man_reached_target(self):
         man_pos = self.positions_of_visuals[0]
         target_pos = self.positions_of_visuals[1]
-        if np.abs(target_pos - man_pos) < 3 or np.abs(target_pos - man_pos) > 357:
+        if np.abs(target_pos - man_pos) < self.angle_dif_between_man_and_target_trap \
+                or np.abs(target_pos - man_pos) > 360 - self.angle_dif_between_man_and_target_trap:
             return True
         else:
             return False
@@ -97,7 +100,8 @@ class MTT:
     def has_man_reached_trap(self):
         man_pos = self.positions_of_visuals[0]
         trap_pos = self.positions_of_visuals[2]
-        if np.abs(trap_pos - man_pos) < 3 or np.abs(trap_pos - man_pos) > 357:
+        if np.abs(trap_pos - man_pos) < self.angle_dif_between_man_and_target_trap \
+                or np.abs(trap_pos - man_pos) > 360 - self.angle_dif_between_man_and_target_trap:
             return True
         else:
             return False

@@ -40,6 +40,7 @@ class StateMachine(StateMachine):
     initialise_after_fail_13 = failed.to(no_poke_no_avail)
     initialise_after_success_14 = succeeded.to(no_poke_no_avail)
     fail_to_trap_15 = poke_no_avail.to(failed)
+    wait_on_fail_16 = failed.to(failed)
 
     def __init__(self, _reward_on_poke, _dt):
         super().__init__(StateMachine)
@@ -152,3 +153,8 @@ class StateMachine(StateMachine):
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
         self.poke_timer = 0
         #print('ooo Failed while poking. That should mean that the manipulandum reached the trap')
+
+    def on_wait_on_fail_16(self):
+        self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
+        self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
+        self.poke_timer = 0
