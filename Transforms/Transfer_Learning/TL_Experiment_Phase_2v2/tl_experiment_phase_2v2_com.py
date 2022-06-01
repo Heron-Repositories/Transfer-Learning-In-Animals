@@ -24,14 +24,14 @@ NodeAttributeNames = ['Parameters', 'Levers Box In', 'Food Poke Update',
                       'Command to Screens', 'Command to Reward Poke', 'Command to Vibrate Arduino']
 NodeAttributeType = ['Static', 'Input', 'Input', 'Output', 'Output', 'Output']
 ParameterNames = ['Hidden Man/Target/Trap', 'Reward Delay / sec', 'Levers State',
-                  'Min Dist to Target', 'Max Dist to Target', 'Speed deg/sec',
-                  'Variable Targets', 'Must Lift at Target', '# Pellets']
-ParameterTypes = ['bool', 'str', 'list', 'int', 'int', 'float', 'bool', 'bool', 'int']
+                  'Min, Max Dist to Target', 'Anti-clock, Clock Target Offset', 'Anti-clock, Clock Trap Offset',
+                  'Speed deg/sec', 'Must Lift at Target', '# Pellets']
+ParameterTypes = ['bool', 'str', 'list', 'str', 'str', 'str', 'float', 'bool', 'int']
 ParametersDefaultValues = [False, '0.0',
                            ['Off-Silent', 'Off-Vibrating',
                             'On-Vibrating-Left', 'On-Vibrating-Right', 'On-Vibrating-Random',
                             'On-Silent-Left', 'On-Silent-Right', 'On-Silent-Random'],
-                           10, 90, 25, False, False, 1]
+                           '10, 80', '0, 0', '0, 0', 25, False, 1]
 WorkerDefaultExecutable = os.path.join(os.path.dirname(Exec), 'tl_experiment_phase_2v2_worker.py')
 
 # </editor-fold>

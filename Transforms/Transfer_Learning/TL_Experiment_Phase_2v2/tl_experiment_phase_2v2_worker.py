@@ -22,12 +22,13 @@ no_mtt: bool
 reward_on_poke_delay: float
 levers_state: int
 levers_states_dict = {'Off-Silent': 0, 'Off-Vibrating': 1,
-                      'On-Vibrating-Left': 2, 'On-Vibrating-Right': 3, 'On-Vibrating-Random': 4,
-                      'On-Silent-Left': 5, 'On-Silent-Right': 6, 'On-Silent-Random': 7}
+                      'On-Vibrating-Right': 2, 'On-Vibrating-Left': 3, 'On-Vibrating-Random': 4,
+                      'On-Silent-Right': 5, 'On-Silent-Left': 6, 'On-Silent-Random': 7}
 min_distance_to_target: int
 max_distance_to_target: int
+target_offsets: int
+trap_offsets: int
 speed: float
-variable_targets: bool
 must_lift_at_target: bool
 number_of_pellets: int
 availability_on = False
@@ -52,8 +53,9 @@ def initialise(_worker_object):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
+    global target_offsets
+    global trap_offsets
     global speed
-    global variable_targets
     global must_lift_at_target
     global number_of_pellets
     global worker_object
@@ -66,10 +68,10 @@ def initialise(_worker_object):
         no_mtt = parameters[0]
         reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[1])
         levers_state = levers_states_dict[parameters[2]]
-        min_distance_to_target = parameters[3]
-        max_distance_to_target = parameters[4]
-        speed = parameters[5]
-        variable_targets = parameters[6]
+        min_distance_to_target, max_distance_to_target = [int(i) for i in parameters[3].split(',')]
+        target_offsets = [int(i) for i in parameters[4].split(',')]
+        trap_offsets = [int(i) for i in parameters[5].split(',')]
+        speed = parameters[6]
         must_lift_at_target = parameters[7]
         number_of_pellets = parameters[8]
     except Exception as e:
@@ -87,7 +89,7 @@ def initialise(_worker_object):
     worker_object.relic_create_parameters_df(no_mtt=no_mtt, reward_on_poke_delay=reward_on_poke_delay,
                                              levers_state=levers_state, min_distance_to_target=min_distance_to_target,
                                              max_distance_to_target=max_distance_to_target,
-                                             speed=speed, variable_targets=variable_targets,
+                                             speed=speed,
                                              must_lift_at_target=must_lift_at_target, number_of_pellets=number_of_pellets)
     return True
 
@@ -109,8 +111,10 @@ def initialise_man_target_trap_object():
 
     if not no_mtt:
         up_or_down = generate_up_or_down()
-        man_targ_trap = mtt.MTT(variable_targets, min_distance_to_target, max_distance_to_target,
+        man_targ_trap = mtt.MTT(min_distance_to_target, max_distance_to_target,
+                                target_offsets, trap_offsets,
                                 mean_dt, speed, must_lift_at_target, up_or_down)
+
 
 def create_average_speed_of_levers_updating():
     global mean_dt
@@ -178,8 +182,9 @@ def experiment(data, parameters, relic_update_substate_df):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
+    global target_offsets
+    global trap_offsets
     global speed
-    global variable_targets
     global number_of_pellets
     global availability_on
     global poke_on
@@ -193,9 +198,10 @@ def experiment(data, parameters, relic_update_substate_df):
 
     try:
         levers_state = levers_states_dict[parameters[2]]
-        min_distance_to_target = parameters[3]
-        max_distance_to_target = parameters[4]
-        speed = parameters[5]
+        min_distance_to_target, max_distance_to_target = [int(i) for i in parameters[3].split(',')]
+        target_offsets = [int(i) for i in parameters[4].split(',')]
+        trap_offsets = [int(i) for i in parameters[5].split(',')]
+        speed = parameters[6]
         cfg.number_of_pellets = parameters[8]
     except:
         pass
@@ -315,8 +321,6 @@ def experiment(data, parameters, relic_update_substate_df):
 
                     state_machine.man_targ_trap = \
                         man_targ_trap.calculate_positions_for_levers_movement(lever_press_time_from_end_of_last_trial)
-                    #state_machine.man_targ_trap = \
-                     #      man_targ_trap.calculate_positions_for_levers_movement(lever_press_time)
                     if 2 <= levers_state <= 4:  # If the levers state is On-Vibrating ...
                         # ... turn vibration on.
                         if man_targ_trap.up_or_down:

@@ -5,27 +5,28 @@ import copy
 
 class MTT:
 
-    def __init__(self, _variable_targets, _min_distance_to_target, _max_distance_to_target,
+    def __init__(self, _min_distance_to_target, _max_distance_to_target,
+                 _target_offsets, _trap_offsets,
                  _dt, _man_speed, _must_lift_at_target, up_or_down):
-        self.variable_targets = _variable_targets
+
         self.min_distance_to_target = _min_distance_to_target
         self.max_distance_to_target = _max_distance_to_target
+        self.target_offsets = _target_offsets
+        self.trap_offsets = _trap_offsets
         self.dt = _dt
         self.man_speed = _man_speed
         self.must_lift_at_target = _must_lift_at_target
         self.positions_of_visuals = np.empty(3)
         self.up_or_down = up_or_down
 
-        if self.variable_targets:
-            manipulandum, target, trap = self.initialise_trial_with_variable_target_trap()
-        else:
-            manipulandum, target, trap = self.initialise_trial_with_constant_target_trap()
+        manipulandum, target, trap = self.initialise_trial()
 
         self.positions_of_visuals = np.array([manipulandum, target, trap])
         self.initial_positions_of_visuals = copy.copy(self.positions_of_visuals)
 
         self.angle_dif_between_man_and_target_trap = 5
 
+    '''
     def initialise_trial_with_variable_target_trap(self):
 
         manipulandum = np.random.randint(360 - 80, 360 - 9)
@@ -40,18 +41,36 @@ class MTT:
                                        manipulandum - self.min_distance_to_target - 9)
 
         return manipulandum, target, trap
+    '''
 
-    def initialise_trial_with_constant_target_trap(self):
+    def initialise_trial(self):
+
+        def offset(target, trap):
+            def adjust(pos):
+                if pos < 0:
+                    return pos + 360
+                if pos > 360:
+                    return pos - 360
+                return pos
+
+            target_minus = target + self.target_offsets[0]
+            target_plus = target + self.target_offsets[1]
+            trap_minus = trap + self.trap_offsets[0]
+            trap_plus = trap + self.trap_offsets[1]
+
+            if target_minus != target_plus:
+                target = adjust(np.random.randint(target_minus, target_plus))
+            if trap_minus != trap_plus:
+                trap = adjust(np.random.randint(trap_minus, trap_plus))
+
+            return target, trap
 
         if self.up_or_down:
-            target = 360
-            trap = 360 - 90
-
+            target, trap = offset(360, 360-90)
             manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
                                              target - np.max([self.min_distance_to_target, 3]))
         else:
-            target = 360 - 90
-            trap = 360
+            target, trap = offset(360 - 90, 360)
 
             manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
                                              np.min([target + self.max_distance_to_target, trap - 3]))
