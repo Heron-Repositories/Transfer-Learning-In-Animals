@@ -18,7 +18,7 @@ import state_machine as sm
 arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
-state_machine = sm.LeversStateMachine(_grace_threshold=6)
+state_machine = sm.LeversStateMachine(_grace_threshold=50)
 time_step = 108  # Milliseconds
 
 

@@ -23,8 +23,7 @@ class MTT:
 
         self.positions_of_visuals = np.array([manipulandum, target, trap])
         self.initial_positions_of_visuals = copy.copy(self.positions_of_visuals)
-
-        self.angle_dif_between_man_and_target_trap = 5
+        self.angle_dif_between_man_and_target_trap = 8
 
     '''
     def initialise_trial_with_variable_target_trap(self):
@@ -43,38 +42,72 @@ class MTT:
         return manipulandum, target, trap
     '''
 
+    def offset_target_trap(self, target, trap):
+
+
+
+        def create_random_offset(limits):
+            try_again = True
+            limits = np.array(limits)
+            if limits.shape[0] > 2:
+                limits = limits.reshape((2, int(len(limits) / 2)))
+            else:
+                limits = np.expand_dims(limits, axis=0)
+            while try_again:
+                random_theta = np.random.randint(-180, 180)
+                for limit in limits:
+                    if random_theta >= limit[0] and random_theta <= limit[1]:
+                        try_again = False
+
+            return random_theta
+
+        '''
+        target_minus = target + self.target_offsets[0]
+        target_plus = target + self.target_offsets[1]
+        trap_minus = trap + self.trap_offsets[0]
+        trap_plus = trap + self.trap_offsets[1]
+
+        if target_minus != target_plus:
+            target = adjust(np.random.randint(target_minus, target_plus))
+        if trap_minus != trap_plus:
+            trap = adjust(np.random.randint(trap_minus, trap_plus))
+        '''
+
+        target_offset = create_random_offset(self.target_offsets)
+        target = target + target_offset
+        # The following if locks the trap to the target if the offsets for the trap in the parameters are set to -200, -200
+        if self.trap_offsets[0] == -181 and self.trap_offsets[1] == 181:
+            trap = trap + target_offset
+        else:
+            trap_offset = create_random_offset(self.trap_offsets)
+            trap = trap + trap_offset
+
+        return target, trap
+
     def initialise_trial(self):
 
-        def offset(target, trap):
-            def adjust(pos):
-                if pos < 0:
-                    return pos + 360
-                if pos > 360:
-                    return pos - 360
-                return pos
-
-            target_minus = target + self.target_offsets[0]
-            target_plus = target + self.target_offsets[1]
-            trap_minus = trap + self.trap_offsets[0]
-            trap_plus = trap + self.trap_offsets[1]
-
-            if target_minus != target_plus:
-                target = adjust(np.random.randint(target_minus, target_plus))
-            if trap_minus != trap_plus:
-                trap = adjust(np.random.randint(trap_minus, trap_plus))
-
-            return target, trap
+        def adjust(pos):
+            if pos < 0:
+                return pos + 360
+            if pos > 360:
+                return pos - 360
+            return pos
 
         if self.up_or_down:
-            target, trap = offset(360, 360-90)
+            target, trap = self.offset_target_trap(360, 360-90)
             manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
                                              target - np.max([self.min_distance_to_target, 3]))
         else:
-            target, trap = offset(360 - 90, 360)
+            target, trap = self.offset_target_trap(360 - 90, 360)
 
             manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
                                              np.min([target + self.max_distance_to_target, trap - 3]))
 
+        manipulandum = adjust(manipulandum)
+        target = adjust(target)
+        trap = adjust(trap)
+
+        print('manipulandum={} target={} trap={}'.format(manipulandum, target, trap))
         return manipulandum, target, trap
 
     def calculate_positions_for_auto_movement(self, current_time, total_time):
@@ -104,7 +137,8 @@ class MTT:
                 self.positions_of_visuals[0] = self.positions_of_visuals[1]
             elif self.has_man_reached_trap():
                 self.positions_of_visuals[0] = self.positions_of_visuals[2]
-        #print(levers_pressed_time, self.positions_of_visuals[0])
+
+        #print(levers_pressed_time, self.positions_of_visuals)
         return self.positions_of_visuals
 
     def has_man_reached_target(self):

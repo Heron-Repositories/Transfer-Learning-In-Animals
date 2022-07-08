@@ -23,11 +23,11 @@ BaseName = 'TL Experiment Phase 2v2'
 NodeAttributeNames = ['Parameters', 'Levers Box In', 'Food Poke Update',
                       'Command to Screens', 'Command to Reward Poke', 'Command to Vibrate Arduino']
 NodeAttributeType = ['Static', 'Input', 'Input', 'Output', 'Output', 'Output']
-ParameterNames = ['Hidden Man/Target/Trap', 'Reward Delay / sec', 'Levers State',
+ParameterNames = ['Visualisation', 'Hidden Man/Target/Trap', 'Reward Delay / sec', 'Levers State',
                   'Min, Max Dist to Target', 'Anti-clock, Clock Target Offset', 'Anti-clock, Clock Trap Offset',
                   'Speed deg/sec', 'Must Lift at Target', '# Pellets']
-ParameterTypes = ['bool', 'str', 'list', 'str', 'str', 'str', 'float', 'bool', 'int']
-ParametersDefaultValues = [False, '0.0',
+ParameterTypes = ['bool', 'bool', 'str', 'list', 'str', 'str', 'str', 'float', 'bool', 'int']
+ParametersDefaultValues = [False, False, '0.0',
                            ['Off-Silent', 'Off-Vibrating',
                             'On-Vibrating-Left', 'On-Vibrating-Right', 'On-Vibrating-Random',
                             'On-Silent-Left', 'On-Silent-Right', 'On-Silent-Random'],
