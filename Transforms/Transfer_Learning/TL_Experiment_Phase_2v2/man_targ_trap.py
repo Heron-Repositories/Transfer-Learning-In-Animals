@@ -44,8 +44,6 @@ class MTT:
 
     def offset_target_trap(self, target, trap):
 
-
-
         def create_random_offset(limits):
             try_again = True
             limits = np.array(limits)
@@ -61,26 +59,16 @@ class MTT:
 
             return random_theta
 
-        '''
-        target_minus = target + self.target_offsets[0]
-        target_plus = target + self.target_offsets[1]
-        trap_minus = trap + self.trap_offsets[0]
-        trap_plus = trap + self.trap_offsets[1]
-
-        if target_minus != target_plus:
-            target = adjust(np.random.randint(target_minus, target_plus))
-        if trap_minus != trap_plus:
-            trap = adjust(np.random.randint(trap_minus, trap_plus))
-        '''
-
         target_offset = create_random_offset(self.target_offsets)
         target = target + target_offset
-        # The following if locks the trap to the target if the offsets for the trap in the parameters are set to -200, -200
+        # The following if locks the trap to the target if the offsets for the trap in the parameters are set to -181, 181
         if self.trap_offsets[0] == -181 and self.trap_offsets[1] == 181:
-            trap = trap + target_offset
+            trap_offset = target_offset
         else:
             trap_offset = create_random_offset(self.trap_offsets)
-            trap = trap + trap_offset
+        trap = trap + trap_offset
+
+        print('Offsets = {}, {}'.format(target_offset, trap_offset))
 
         return target, trap
 
@@ -107,7 +95,8 @@ class MTT:
         target = adjust(target)
         trap = adjust(trap)
 
-        print('manipulandum={} target={} trap={}'.format(manipulandum, target, trap))
+        d_temp = {1: 'Left', 0: 'Right'}
+        print('Trial type = {}'.format(d_temp[self.up_or_down]))
         return manipulandum, target, trap
 
     def calculate_positions_for_auto_movement(self, current_time, total_time):

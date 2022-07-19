@@ -12,13 +12,12 @@ import queue
 import time
 from statemachine import StateMachine
 from Heron.communication.socket_for_serialization import Socket
-from Heron.gui.visualisation import Visualisation
+from Heron.gui.visualisation_dpg import VisualisationDPG
 from Heron import general_utils as gu
 from Heron import constants as ct
 import config as cfg
 import state_machine as sm
 import man_targ_trap as mtt
-import matplotlib.pyplot as plt
 from datetime import datetime
 
 no_mtt: bool
@@ -48,9 +47,11 @@ state_machine: StateMachine
 man_targ_trap: mtt.MTT
 time_steps_of_wait_after_failure = 100  # This needs to be double the grace period which is defined in the TL_Levers
 counter_after_failure = 0
-vis: Visualisation
+vis: VisualisationDPG
 record = [[0, 0]]
 vis_times = []
+correct_last_1min = []
+failed_last_1min = []
 starting_time = datetime.now()
 previous_record = np.array([0, 0])
 
@@ -107,48 +108,42 @@ def initialise(_worker_object):
                                              must_lift_at_target=must_lift_at_target,
                                              number_of_pellets=number_of_pellets)
 
-    #vis = Visualisation(worker_object.node_name, worker_object.node_index)
-    #vis.set_new_visualisation_loop(visualise_correct_failed_trials)
-    #vis.visualisation_init()
+    vis = VisualisationDPG(worker_object.node_name, worker_object.node_index,
+                           _visualisation_type='Single Pane Plot', _buffer=100)
 
     return True
 
 
-def visualise_correct_failed_trials(vis_object):
+def visualise_correct_failed_trials():
+    global vis
+    global state_machine
     global record
+    global previous_record
     global vis_times
+    global correct_last_1min
+    global failed_last_1min
 
-    correct_last_5mins = []
-    failed_last_5mins = []
-    while vis_object.running:
-        print(record)
-        if vis_object.visualised_data is not None\
-                and (record[-1][0] != vis_object.visualised_data[0] or record[-1][1] != vis_object.visualised_data[1]):
-            correct = vis_object.visualised_data[0]
-            failed = vis_object.visualised_data[1]
-            record.append([correct, failed])
-            vis_times.append((datetime.now() - starting_time).total_seconds())
-        while vis_object.visualisation_on:
+    if state_machine.record[0] != previous_record[0] or state_machine.record[1] != previous_record[1]:
 
-            if not vis_object.window_showing:
-                f = plt.figure(0)
-                a = f.add_subplot()
-                vis_object.window_showing = True
-            if vis_object.window_showing and vis_object.visualised_data is not None and \
-                    (record[-1][0] != vis_object.visualised_data[0] or record[-1][1] != vis_object.visualised_data[1]):
-                correct = vis_object.visualised_data[0]
-                failed = vis_object.visualised_data[1]
-                record.append([correct, failed])
-                vis_times.append((datetime.now() - starting_time).total_seconds())
-                start_index = (np.abs(np.array(vis_times) - 1*5)).argmin()
-                correct_last_5mins.append(record[-1][0] - record[start_index][0])
-                failed_last_5mins.append(record[-1][1] - record[start_index][1])
-                a.clear()
-                a.plot(correct_last_5mins)
-                a.plot(failed_last_5mins)
+        correct = state_machine.record[0]
+        failed = state_machine.record[1]
+        record.append([correct, failed])
+        vis_times.append((datetime.now() - starting_time).total_seconds())
 
-        plt.close(0)
-        vis_object.window_showing = False
+        start_index = (np.abs(np.array(vis_times) - (vis_times[-1] - (5 * 60)))).argmin()  # moving window of 5 minutes
+
+        correct_last_1min.append(record[-1][0] - record[start_index][0])
+        failed_last_1min.append(record[-1][1] - record[start_index][1])
+
+        correct_fails = np.array([correct_last_1min, failed_last_1min])
+
+        if len(correct_last_1min) < 100:
+            vis.visualise(np.array(correct_fails))
+        else:
+            vis.visualise(np.array(correct_fails)[:, -100:])
+
+    previous_record[0] = state_machine.record[0]
+    previous_record[1] = state_machine.record[1]
 
 
 def generate_reward_poke_delay_from_parameter(parameter):
@@ -248,7 +243,7 @@ def experiment(data, parameters, relic_update_substate_df):
     global previous_record
 
     try:
-        #vis.visualisation_on = worker_object.parameters[0]
+        vis.visualisation_on = worker_object.parameters[0]
         levers_state = levers_states_dict[parameters[3]]
         min_distance_to_target, max_distance_to_target = [int(i) for i in parameters[4].split(',')]
         target_offsets = [int(i) for i in parameters[5].split(',')]
@@ -445,18 +440,11 @@ def experiment(data, parameters, relic_update_substate_df):
                              reward_dealy=reward_on_poke_delay,
                              reward_availability=availability_on)
 
-    #if vis.visualisation_on:
-    #    vis.visualised_data = state_machine.record
-
-
     result = [state_machine.command_to_screens,
               state_machine.command_to_food_poke,
               command_to_vibration_arduino_controller]
 
-    if state_machine.record[0] != previous_record[0] or state_machine.record[1] != previous_record[1]:
-        print(state_machine.record)
-        previous_record[0] = state_machine.record[0]
-        previous_record[1] = state_machine.record[1]
+    visualise_correct_failed_trials()
 
     #print(' ooo Comm to Screen = {}'.format(state_machine.command_to_screens))
     #print(state_machine.current_state)
