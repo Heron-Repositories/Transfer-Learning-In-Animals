@@ -40,6 +40,10 @@ class StateMachine(StateMachine):
     initialise_after_fail_13 = failed.to(no_poke_no_avail)
     initialise_after_success_14 = succeeded.to(no_poke_no_avail)
     fail_to_trap_15 = poke_no_avail.to(failed)
+    wait_on_fail_16 = failed.to(failed)
+    wait_on_succeeded_17 = succeeded.to(succeeded)
+    succeed_at_constant_poke_18 = poke_avail.to(succeeded)
+    restart_after_succeed_19 = succeeded.to(poke_no_avail)
 
     def __init__(self, _reward_on_poke, _dt):
         super().__init__(StateMachine)
@@ -49,6 +53,8 @@ class StateMachine(StateMachine):
         self.break_timer = 0  # A timer that counts how many 100us periods the rat is allowed to retract its snout
                               # without aborting the trial
         self.man_targ_trap = [0, 0, 0]
+
+        self.record = np.array([0, 0])  # The # of successful and failed trials when the target trap should be reached
 
     def on_running_around_no_availability_0(self):
         self.command_to_screens = np.array([ct.IGNORE])
@@ -87,6 +93,7 @@ class StateMachine(StateMachine):
         self.command_to_screens = np.array(['Cue=1, Manipulandum=0, Target=0, Trap=0'])
         self.command_to_food_poke = np.array([cfg.number_of_pellets])
         self.poke_timer = 0
+        self.record[0] = self.record[0] + 1
         #print('ooo Availability started')
 
     def on_waiting_in_poke_while_availability_5(self):
@@ -151,4 +158,25 @@ class StateMachine(StateMachine):
         self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
         self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
         self.poke_timer = 0
+        self.record[1] = self.record[1] + 1
         #print('ooo Failed while poking. That should mean that the manipulandum reached the trap')
+
+    def on_wait_on_fail_16(self):
+        self.command_to_screens = np.array(['Cue=0, Manipulandum=0, Target=0, Trap=0'])
+        self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
+        self.poke_timer = 0
+
+    def on_wait_on_succeeded_17(self):
+        self.command_to_screens = np.array([ct.IGNORE])
+        self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
+        self.poke_timer = 0
+
+    def on_succeed_at_constant_poke_18(self):
+        self.command_to_screens = np.array([ct.IGNORE])
+        self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
+        self.poke_timer = 0
+
+    def on_restart_after_succeed_19(self):
+        self.command_to_screens = np.array([ct.IGNORE])
+        self.command_to_food_poke = np.array([self.constant_to_update_poke_without_starting_trial])
+        self.poke_timer = 0

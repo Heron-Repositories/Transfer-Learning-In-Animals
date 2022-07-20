@@ -40,7 +40,7 @@ class LeversStateMachine(StateMachine):
     _23 = no_poke_no_levers_grace.to(no_poke_no_levers)
     _24 = no_poke_levers.to(poke_no_levers)
 
-    def __init__(self, _grace_threshold=6):
+    def __init__(self, _grace_threshold=60):
         super().__init__(StateMachine)
         self.lever_press_time = 0
         self.poke = 0

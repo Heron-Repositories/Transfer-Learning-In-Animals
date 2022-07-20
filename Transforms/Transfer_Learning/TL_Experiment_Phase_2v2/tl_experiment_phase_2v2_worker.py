@@ -12,22 +12,25 @@ import queue
 import time
 from statemachine import StateMachine
 from Heron.communication.socket_for_serialization import Socket
+from Heron.gui.visualisation_dpg import VisualisationDPG
 from Heron import general_utils as gu
 from Heron import constants as ct
 import config as cfg
 import state_machine as sm
 import man_targ_trap as mtt
+from datetime import datetime
 
 no_mtt: bool
 reward_on_poke_delay: float
 levers_state: int
 levers_states_dict = {'Off-Silent': 0, 'Off-Vibrating': 1,
-                      'On-Vibrating-Left': 2, 'On-Vibrating-Right': 3, 'On-Vibrating-Random': 4,
-                      'On-Silent-Left': 5, 'On-Silent-Right': 6, 'On-Silent-Random': 7}
+                      'On-Vibrating-Right': 2, 'On-Vibrating-Left': 3, 'On-Vibrating-Random': 4,
+                      'On-Silent-Right': 5, 'On-Silent-Left': 6, 'On-Silent-Random': 7}
 min_distance_to_target: int
 max_distance_to_target: int
+target_offsets: []
+trap_offsets: []
 speed: float
-variable_targets: bool
 must_lift_at_target: bool
 number_of_pellets: int
 availability_on = False
@@ -42,6 +45,15 @@ dt_history = queue.Queue(10)
 current_time: float
 state_machine: StateMachine
 man_targ_trap: mtt.MTT
+time_steps_of_wait_after_failure = 100  # This needs to be double the grace period which is defined in the TL_Levers
+counter_after_failure = 0
+vis: VisualisationDPG
+record = [[0, 0]]
+vis_times = []
+correct_last_1min = []
+failed_last_1min = []
+starting_time = datetime.now()
+previous_record = np.array([0, 0])
 
 
 def initialise(_worker_object):
@@ -50,26 +62,29 @@ def initialise(_worker_object):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
+    global target_offsets
+    global trap_offsets
     global speed
-    global variable_targets
     global must_lift_at_target
     global number_of_pellets
     global worker_object
     global availability_on
     global state_machine
     global current_time
+    global vis
 
     try:
         parameters = _worker_object.parameters
-        no_mtt = parameters[0]
-        reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[1])
-        levers_state = levers_states_dict[parameters[2]]
-        min_distance_to_target = parameters[3]
-        max_distance_to_target = parameters[4]
-        speed = parameters[5]
-        variable_targets = parameters[6]
-        must_lift_at_target = parameters[7]
-        number_of_pellets = parameters[8]
+        no_mtt = parameters[1]
+        reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[2])
+        levers_state = levers_states_dict[parameters[3]]
+        min_distance_to_target, max_distance_to_target = [int(i) for i in parameters[4].split(',')]
+        target_offsets = [int(i) for i in parameters[5].split(',')]
+        trap_offsets = [int(i) for i in parameters[6].split(',')]
+        speed = parameters[7]
+        must_lift_at_target = parameters[8]
+        number_of_pellets = parameters[9]
+
     except Exception as e:
         print(e)
         return False
@@ -82,12 +97,53 @@ def initialise(_worker_object):
 
     current_time = time.perf_counter()
 
-    worker_object.relic_create_parameters_df(no_mtt=no_mtt, reward_on_poke_delay=reward_on_poke_delay,
-                                             levers_state=levers_state, min_distance_to_target=min_distance_to_target,
-                                             max_distance_to_target=max_distance_to_target,
-                                             speed=speed, variable_targets=variable_targets,
-                                             must_lift_at_target=must_lift_at_target, number_of_pellets=number_of_pellets)
+    worker_object.relic_create_parameters_df(visualisation=parameters[0],
+                                             no_mtt=no_mtt,
+                                             reward_on_poke_delay=reward_on_poke_delay,
+                                             levers_state=levers_state,
+                                             min_max_distance_to_target='{}, {}'.format(min_distance_to_target, max_distance_to_target),
+                                             target_offsets=str(target_offsets),
+                                             trap_offsets=str(trap_offsets),
+                                             speed=speed,
+                                             must_lift_at_target=must_lift_at_target,
+                                             number_of_pellets=number_of_pellets)
+
+    vis = VisualisationDPG(worker_object.node_name, worker_object.node_index,
+                           _visualisation_type='Single Pane Plot', _buffer=100)
+
     return True
+
+
+def visualise_correct_failed_trials():
+    global vis
+    global state_machine
+    global record
+    global previous_record
+    global vis_times
+    global correct_last_1min
+    global failed_last_1min
+
+    if state_machine.record[0] != previous_record[0] or state_machine.record[1] != previous_record[1]:
+
+        correct = state_machine.record[0]
+        failed = state_machine.record[1]
+        record.append([correct, failed])
+        vis_times.append((datetime.now() - starting_time).total_seconds())
+
+        start_index = (np.abs(np.array(vis_times) - (vis_times[-1] - (5 * 60)))).argmin()  # moving window of 5 minutes
+
+        correct_last_1min.append(record[-1][0] - record[start_index][0])
+        failed_last_1min.append(record[-1][1] - record[start_index][1])
+
+        correct_fails = np.array([correct_last_1min, failed_last_1min])
+
+        if len(correct_last_1min) < 100:
+            vis.visualise(np.array(correct_fails))
+        else:
+            vis.visualise(np.array(correct_fails)[:, -100:])
+
+    previous_record[0] = state_machine.record[0]
+    previous_record[1] = state_machine.record[1]
 
 
 def generate_reward_poke_delay_from_parameter(parameter):
@@ -107,8 +163,10 @@ def initialise_man_target_trap_object():
 
     if not no_mtt:
         up_or_down = generate_up_or_down()
-        man_targ_trap = mtt.MTT(variable_targets, min_distance_to_target, max_distance_to_target,
+        man_targ_trap = mtt.MTT(min_distance_to_target, max_distance_to_target,
+                                target_offsets, trap_offsets,
                                 mean_dt, speed, must_lift_at_target, up_or_down)
+
 
 def create_average_speed_of_levers_updating():
     global mean_dt
@@ -140,15 +198,7 @@ def generate_up_or_down():
 def recalibrate_lever_press_time():
     global lever_press_time
     global start_trial_lever_press_time
-    '''
-    if lever_press_time == 0:
-        start_trial_lever_press_time = 0
-    if np.sign(lever_press_time) == np.sign(start_trial_lever_press_time):# and \
-            #np.abs(lever_press_time) > np.abs(start_trial_lever_press_time):
-        lever_press_time_from_end_of_last_trial = lever_press_time - start_trial_lever_press_time
-    else:
-        lever_press_time_from_end_of_last_trial = lever_press_time
-    '''
+
     lever_press_time_from_end_of_last_trial = lever_press_time - start_trial_lever_press_time
 
     return lever_press_time_from_end_of_last_trial
@@ -176,8 +226,9 @@ def experiment(data, parameters, relic_update_substate_df):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
+    global target_offsets
+    global trap_offsets
     global speed
-    global variable_targets
     global number_of_pellets
     global availability_on
     global poke_on
@@ -187,13 +238,18 @@ def experiment(data, parameters, relic_update_substate_df):
     global prev_avail
     global prev_poke
     global man_targ_trap
+    global counter_after_failure
+    global vis
+    global previous_record
 
     try:
-        levers_state = levers_states_dict[parameters[2]]
-        min_distance_to_target = parameters[3]
-        max_distance_to_target = parameters[4]
-        speed = parameters[5]
-        cfg.number_of_pellets = parameters[8]
+        vis.visualisation_on = worker_object.parameters[0]
+        levers_state = levers_states_dict[parameters[3]]
+        min_distance_to_target, max_distance_to_target = [int(i) for i in parameters[4].split(',')]
+        target_offsets = [int(i) for i in parameters[5].split(',')]
+        trap_offsets = [int(i) for i in parameters[6].split(',')]
+        speed = parameters[7]
+        cfg.number_of_pellets = parameters[9]
     except:
         pass
 
@@ -237,7 +293,7 @@ def experiment(data, parameters, relic_update_substate_df):
 
     if not poke_on and not availability_on:
         if state_machine.current_state == state_machine.no_poke_no_avail:
-            if state_machine.break_timer == 6:
+            if state_machine.break_timer >= 6:
                 initialise_man_target_trap_object()
             state_machine.running_around_no_availability_0()
 
@@ -254,8 +310,12 @@ def experiment(data, parameters, relic_update_substate_df):
                 state_machine.too_long_running_around_10()
 
         elif state_machine.current_state == state_machine.failed:
-            state_machine.initialise_after_fail_13()
-            initialise_man_target_trap_object()
+            state_machine.wait_on_fail_16()
+            counter_after_failure += 1
+            if counter_after_failure > time_steps_of_wait_after_failure:
+                state_machine.initialise_after_fail_13()
+                #initialise_man_target_trap_object()
+                counter_after_failure = 0
 
         elif state_machine.current_state == state_machine.succeeded:
             state_machine.initialise_after_success_14()
@@ -264,7 +324,7 @@ def experiment(data, parameters, relic_update_substate_df):
     elif poke_on and not availability_on:
         if state_machine.current_state == state_machine.no_poke_no_avail:
             if not no_mtt and state_machine.break_timer == 0:
-                reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[1])
+                reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[2])
                 man_targ_trap.back_to_initial_positions()
                 start_trial_lever_press_time = lever_press_time  # This is important for the correct recalibration of
                 # the lever_press_time
@@ -272,6 +332,15 @@ def experiment(data, parameters, relic_update_substate_df):
                 if not no_mtt and levers_state < 2:  # print delay only for Stage 3
                     print(reward_on_poke_delay)
             state_machine.just_poked_1()
+
+        if state_machine.current_state == state_machine.succeeded:
+            reward_on_poke_delay = generate_reward_poke_delay_from_parameter(parameters[2])
+            initialise_man_target_trap_object()
+            #man_targ_trap.back_to_initial_positions()
+            start_trial_lever_press_time = lever_press_time  # This is important for the correct recalibration of
+            # the lever_press_time
+            state_machine.man_targ_trap = man_targ_trap.positions_of_visuals
+            state_machine.restart_after_succeed_19()
 
         # The state "Poke No Availability" (P_NA) is where most of the logic happens. Here is where the animal has to
         # either wait long enough (either looking at the manipulandum moving by itself (Stage 3) or not (Stage 2))
@@ -308,8 +377,6 @@ def experiment(data, parameters, relic_update_substate_df):
 
                     state_machine.man_targ_trap = \
                         man_targ_trap.calculate_positions_for_levers_movement(lever_press_time_from_end_of_last_trial)
-                    #state_machine.man_targ_trap = \
-                     #      man_targ_trap.calculate_positions_for_levers_movement(lever_press_time)
                     if 2 <= levers_state <= 4:  # If the levers state is On-Vibrating ...
                         # ... turn vibration on.
                         if man_targ_trap.up_or_down:
@@ -322,7 +389,6 @@ def experiment(data, parameters, relic_update_substate_df):
                         state_machine.availability_started_4()  # ... reward the animal.
                     elif man_targ_trap.has_man_reached_trap():  # If the man. reached the trap ...
                         availability_on = False
-
                         state_machine.fail_to_trap_15()  # ... start again.
 
         elif state_machine.current_state == state_machine.poke_avail:
@@ -332,8 +398,16 @@ def experiment(data, parameters, relic_update_substate_df):
             state_machine.too_long_running_around_10()
 
         elif state_machine.current_state == state_machine.failed:
-            state_machine.poking_at_fail_12()
-            start_trial_lever_press_time = lever_press_time
+            state_machine.wait_on_fail_16()
+            counter_after_failure += 1
+            if counter_after_failure > time_steps_of_wait_after_failure:
+                state_machine.poking_at_fail_12()
+                start_trial_lever_press_time = lever_press_time
+                initialise_man_target_trap_object()
+                counter_after_failure = 0
+
+        elif state_machine.current_state == state_machine.succeeded:
+            state_machine.wait_on_succeeded_17()
             initialise_man_target_trap_object()
 
     elif not poke_on and availability_on:
@@ -345,10 +419,17 @@ def experiment(data, parameters, relic_update_substate_df):
 
     elif poke_on and availability_on:
         if state_machine.current_state == state_machine.poke_avail:
-            state_machine.waiting_in_poke_while_availability_5()
+            # TODO I must make a parameter to differentiate the always poking experiment to the poke sometimes
+            #state_machine.waiting_in_poke_while_availability_5()
+            state_machine.succeed_at_constant_poke_18()
 
         elif state_machine.current_state == state_machine.no_poke_avail:
             state_machine.poking_again_while_availability_7()
+
+        elif state_machine.current_state == state_machine.succeeded:
+            state_machine.wait_on_succeeded_17()
+
+    command_to_vibration_arduino_controller = np.array([ct.IGNORE])
 
     current_state = [state_machine.current_state.name, state_machine.current_state.identifier,
                      state_machine.current_state.value, state_machine.current_state.initial]
@@ -363,7 +444,11 @@ def experiment(data, parameters, relic_update_substate_df):
               state_machine.command_to_food_poke,
               command_to_vibration_arduino_controller]
 
-    #print(' ooo Result = {}'.format(result))
+    visualise_correct_failed_trials()
+
+    #print(' ooo Comm to Screen = {}'.format(state_machine.command_to_screens))
+    #print(state_machine.current_state)
+
     return result
 
 

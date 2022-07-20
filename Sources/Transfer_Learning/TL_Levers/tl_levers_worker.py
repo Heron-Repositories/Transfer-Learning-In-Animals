@@ -18,7 +18,7 @@ import state_machine as sm
 arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
-state_machine = sm.LeversStateMachine(_grace_threshold=6)
+state_machine = sm.LeversStateMachine(_grace_threshold=50)
 time_step = 108  # Milliseconds
 
 
@@ -60,10 +60,10 @@ def get_string(string_in):
 def lever_string_to_ints(string):
     [poke_string, left_time_string, right_time_string, left_press_string, right_press_string] = string.split('#')
     poke_on = int(not int(poke_string.split('=')[1]))
-    left_time = int(left_time_string.split('=')[1])
-    right_time = -int(right_time_string.split('=')[1])
-    left_press = int(left_press_string.split('=')[1])
-    right_press = -int(right_press_string.split('=')[1])
+    left_time = -int(left_time_string.split('=')[1])
+    right_time = int(right_time_string.split('=')[1])
+    left_press = -int(left_press_string.split('=')[1])
+    right_press = int(right_press_string.split('=')[1])
 
     return poke_on, left_time, right_time, left_press, right_press
 
