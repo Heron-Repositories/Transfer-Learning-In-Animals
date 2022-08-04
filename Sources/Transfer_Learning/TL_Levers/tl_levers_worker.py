@@ -10,7 +10,6 @@ sys.path.insert(0, path.dirname(current_dir))
 import copy
 import numpy as np
 import serial
-from statemachine import StateMachine
 from Heron import general_utils as gu
 import state_machine as sm
 
@@ -100,6 +99,7 @@ def arduino_data_capture(_worker_object):
     while not loop_on:
         gu.accurate_delay(1)
 
+    _worker_object.num_of_iters_to_update_relics_substate = -1
     _worker_object.relic_create_parameters_df(com_port=_worker_object.parameters[0])
 
     while loop_on:
@@ -119,8 +119,8 @@ def arduino_data_capture(_worker_object):
 
                     poke_and_time = get_lever_pressing_time()
 
-                    worker_object.worker_visualisable_result = np.array(poke_and_time)
-                    worker_object.send_data_to_com(worker_object.worker_visualisable_result)
+                    result = np.array(poke_and_time)
+                    worker_object.send_data_to_com(result)
         except:
             pass
 

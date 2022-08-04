@@ -83,20 +83,29 @@ class MTT:
 
         if self.up_or_down:
             target, trap = self.offset_target_trap(360, 360-90)
-            manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
-                                             target - np.max([self.min_distance_to_target, 3]))
+            #manipulandum = np.random.randint(np.max([target - self.max_distance_to_target, trap - 3]),
+            #                                 target - np.max([self.min_distance_to_target, 3]))
+
         else:
             target, trap = self.offset_target_trap(360 - 90, 360)
 
-            manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
-                                             np.min([target + self.max_distance_to_target, trap - 3]))
+            #manipulandum = np.random.randint(target + np.max([self.min_distance_to_target, 3]),
+            #                                 np.min([target + self.max_distance_to_target, trap - 3]))
 
-        manipulandum = adjust(manipulandum)
-        target = adjust(target)
-        trap = adjust(trap)
+        #manipulandum = np.random.randint(target - self.max_distance_to_target, target + self.max_distance_to_target)
+
+        #target = adjust(target)
+        #trap = adjust(trap)
+
+        manipulandum = np.random.randint(self.min_distance_to_target, self.max_distance_to_target)
+        while (manipulandum < trap + 15 and manipulandum > trap - 15) or \
+            (manipulandum < target + 15 and manipulandum > target - 15):
+            manipulandum = np.random.randint(self.min_distance_to_target, self.max_distance_to_target)
+
 
         d_temp = {1: 'Left', 0: 'Right'}
-        print('Trial type = {}'.format(d_temp[self.up_or_down]))
+        print('Trial type = {}, Manip = {}, Target = {}, Trap = {}'.format(d_temp[self.up_or_down], manipulandum,
+                                                                           target, trap))
         return manipulandum, target, trap
 
     def calculate_positions_for_auto_movement(self, current_time, total_time):

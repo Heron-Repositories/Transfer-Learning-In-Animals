@@ -28,7 +28,7 @@ levers_states_dict = {'Off-Silent': 0, 'Off-Vibrating': 1,
                       'On-Silent-Right': 5, 'On-Silent-Left': 6, 'On-Silent-Random': 7}
 min_distance_to_target: int
 max_distance_to_target: int
-target_offsets: []
+target_position_limits: []
 trap_offsets: []
 speed: float
 must_lift_at_target: bool
@@ -62,7 +62,7 @@ def initialise(_worker_object):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
-    global target_offsets
+    global target_position_limits
     global trap_offsets
     global speed
     global must_lift_at_target
@@ -97,6 +97,7 @@ def initialise(_worker_object):
 
     current_time = time.perf_counter()
 
+    worker_object.num_of_iters_to_update_relics_substate = -1
     worker_object.relic_create_parameters_df(visualisation=parameters[0],
                                              no_mtt=no_mtt,
                                              reward_on_poke_delay=reward_on_poke_delay,
@@ -164,7 +165,7 @@ def initialise_man_target_trap_object():
     if not no_mtt:
         up_or_down = generate_up_or_down()
         man_targ_trap = mtt.MTT(min_distance_to_target, max_distance_to_target,
-                                target_offsets, trap_offsets,
+                                target_position_limits, trap_offsets,
                                 mean_dt, speed, must_lift_at_target, up_or_down)
 
 
@@ -226,7 +227,7 @@ def experiment(data, parameters, relic_update_substate_df):
     global levers_state
     global min_distance_to_target
     global max_distance_to_target
-    global target_offsets
+    global target_position_limits
     global trap_offsets
     global speed
     global number_of_pellets
@@ -443,11 +444,17 @@ def experiment(data, parameters, relic_update_substate_df):
     result = [state_machine.command_to_screens,
               state_machine.command_to_food_poke,
               command_to_vibration_arduino_controller]
-
-    visualise_correct_failed_trials()
+    if vis.visualisation_on:
+        visualise_correct_failed_trials()
 
     #print(' ooo Comm to Screen = {}'.format(state_machine.command_to_screens))
     #print(state_machine.current_state)
+
+    if state_machine.record[0] != previous_record[0] or state_machine.record[1] != previous_record[1]:
+        print(state_machine.record)
+
+        previous_record[0] = state_machine.record[0]
+        previous_record[1] = state_machine.record[1]
 
     return result
 
