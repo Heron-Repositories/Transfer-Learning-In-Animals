@@ -27,7 +27,7 @@ air_puff_at_wrong_poke: bool
 trigger_string: str
 pandas_file: str
 pandas_trials_record: pd.DataFrame
-availability_period_is_running = False
+availability_period_is_running = 0  # 0 = Not running, 1 = Running, 2 = Just finished with reward collected
 reward_amount = 1
 reward_poke: bool # False is the Old / Right poke, True is the New / Left one
 air_puff_thread_is_running: bool
@@ -144,6 +144,7 @@ def start_availability_thread():
     global reward_poke
     global abort_at_wrong_poke
     global succesful_trials
+    global was_reward_collected
 
     total_steps = int(avail_time / sleep_dt)
 
@@ -160,7 +161,7 @@ def start_availability_thread():
         arduino_serial.reset_input_buffer()
     step = 0
 
-    while availability_period_is_running:
+    while availability_period_is_running == 1:
 
         bytes_in_buffer = arduino_serial.in_waiting
         string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
@@ -192,7 +193,7 @@ def start_availability_thread():
                     for _ in np.arange(reward_amount):
                         arduino_serial.write('a'.encode('utf-8'))
                         gu.accurate_delay(500)
-                    availability_period_is_running = False
+                    availability_period_is_running = 2
                     succesful_trials += 1
                     print(succesful_trials)
                 except Exception as e:
@@ -201,7 +202,7 @@ def start_availability_thread():
         elif step >= total_steps or success_failure_continue == 1:
             try:
                 failure_sound()
-                availability_period_is_running = False
+                availability_period_is_running = 0
             except Exception as e:
                 print(e)
             add_trial_state_to_trials_record(0)
@@ -209,7 +210,7 @@ def start_availability_thread():
             try:
                 availability_sound()
                 arduino_serial.read(arduino_serial.in_waiting)
-                availability_period_is_running = True
+                availability_period_is_running = 1
             except Exception as e:
                 print(e)
             gu.accurate_delay(1000 * sleep_dt)
@@ -233,9 +234,9 @@ def start_air_puff_thread():
     global air_puff_timer
 
     while air_puff_thread_is_running:
-        if availability_period_is_running:
+        if availability_period_is_running == 1:
             air_puff_timer = 0
-        if not availability_period_is_running:
+        if availability_period_is_running != 1:
             air_puff_timer += 1
             if air_puff_timer < 50:
                 arduino_serial.reset_input_buffer()
@@ -247,7 +248,7 @@ def start_air_puff_thread():
 
 def air_puff_if_poking_outside_availability():
 
-    if not availability_period_is_running:
+    if availability_period_is_running != 1:
         bytes_in_buffer = arduino_serial.in_waiting
         string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
 
