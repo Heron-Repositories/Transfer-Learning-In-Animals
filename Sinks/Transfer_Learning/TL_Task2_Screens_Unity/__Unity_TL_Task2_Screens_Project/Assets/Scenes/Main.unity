@@ -581,10 +581,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fullScreen: 0
-  windowPositionX: 1920
+  windowPositionX: 2560
   windowPositionY: 0
   monitorWidth: 3840
-  monitorHeight: 1310
+  monitorHeight: 1080
 --- !u!20 &963194227
 Camera:
   m_ObjectHideFlags: 0
@@ -1480,9 +1480,6 @@ MonoBehaviour:
   onClientStopped:
     m_PersistentCalls:
       m_Calls: []
-  onCueAnimate:
-    m_PersistentCalls:
-      m_Calls: []
   onUpdatedMotion:
     m_PersistentCalls:
       m_Calls: []
@@ -1492,7 +1489,13 @@ MonoBehaviour:
   onUpdateScreensOn:
     m_PersistentCalls:
       m_Calls: []
-  onUpdateOpacity:
+  onUpdateTargetTrapOpacity:
+    m_PersistentCalls:
+      m_Calls: []
+  onUpdateCueOpacity:
+    m_PersistentCalls:
+      m_Calls: []
+  onCueAnimate:
     m_PersistentCalls:
       m_Calls: []
 --- !u!1 &3642496919142878524
