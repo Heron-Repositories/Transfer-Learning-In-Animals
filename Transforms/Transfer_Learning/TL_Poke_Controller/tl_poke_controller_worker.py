@@ -33,6 +33,8 @@ reward_poke: bool # False is the Old / Right poke, True is the New / Left one
 air_puff_thread_is_running: bool
 air_puff_timer = 0
 succesful_trials = 0
+success_failure_continue = None
+was_last_trial_successful = None
 
 
 def add_timestamp_to_filename(save_file):
@@ -145,6 +147,8 @@ def start_availability_thread():
     global abort_at_wrong_poke
     global succesful_trials
     global was_reward_collected
+    global success_failure_continue
+    global was_last_trial_successful
 
     total_steps = int(avail_time / sleep_dt)
 
@@ -161,7 +165,7 @@ def start_availability_thread():
         arduino_serial.reset_input_buffer()
     step = 0
 
-    while availability_period_is_running == 1:
+    while availability_period_is_running:
 
         bytes_in_buffer = arduino_serial.in_waiting
         string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
@@ -193,24 +197,26 @@ def start_availability_thread():
                     for _ in np.arange(reward_amount):
                         arduino_serial.write('a'.encode('utf-8'))
                         gu.accurate_delay(500)
-                    availability_period_is_running = 2
+                    availability_period_is_running = False
                     succesful_trials += 1
                     print(succesful_trials)
+                    was_last_trial_successful = True
                 except Exception as e:
                     print(e)
                 add_trial_state_to_trials_record(reward_amount)
         elif step >= total_steps or success_failure_continue == 1:
             try:
                 failure_sound()
-                availability_period_is_running = 0
+                availability_period_is_running = False
             except Exception as e:
                 print(e)
             add_trial_state_to_trials_record(0)
+            was_last_trial_successful = False
         else:
             try:
                 availability_sound()
                 arduino_serial.read(arduino_serial.in_waiting)
-                availability_period_is_running = 1
+                availability_period_is_running = True
             except Exception as e:
                 print(e)
             gu.accurate_delay(1000 * sleep_dt)
@@ -234,9 +240,9 @@ def start_air_puff_thread():
     global air_puff_timer
 
     while air_puff_thread_is_running:
-        if availability_period_is_running == 1:
+        if availability_period_is_running:
             air_puff_timer = 0
-        if availability_period_is_running != 1:
+        if not availability_period_is_running:
             air_puff_timer += 1
             if air_puff_timer < 50:
                 arduino_serial.reset_input_buffer()
@@ -248,7 +254,7 @@ def start_air_puff_thread():
 
 def air_puff_if_poking_outside_availability():
 
-    if availability_period_is_running != 1:
+    if not availability_period_is_running:
         bytes_in_buffer = arduino_serial.in_waiting
         string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
 
@@ -265,6 +271,7 @@ def start_availability_or_switch_pokes(data, parameters):
     global trigger_string
     global reward_amount
     global reward_poke
+    global success_failure_continue
 
     topic = data[0].decode('utf-8')
     message = Socket.reconstruct_array_from_bytes_message(data[1:])
@@ -292,7 +299,8 @@ def start_availability_or_switch_pokes(data, parameters):
                         avail_thread.start()
                 except Exception as e:
                     print(e)
-        result = [np.array([availability_period_is_running])]
+        result = [np.array([availability_period_is_running, was_last_trial_successful])]
+
     elif 'Poke' in topic:
         reward_poke = message[0]
         if reward_poke == 'Left' or reward_poke == 'New':
@@ -300,7 +308,7 @@ def start_availability_or_switch_pokes(data, parameters):
         if reward_poke == 'Right' or reward_poke == 'Old':
             reward_poke = False
         set_poke_tray()
-        result = [np.array([availability_period_is_running])]
+        result = [np.array([availability_period_is_running, was_last_trial_successful])]
 
     return result
 
