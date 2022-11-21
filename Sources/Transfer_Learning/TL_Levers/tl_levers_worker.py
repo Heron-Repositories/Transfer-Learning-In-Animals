@@ -17,7 +17,7 @@ import state_machine as sm
 arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
-state_machine = sm.LeversStateMachine(_grace_threshold=50)
+state_machine = sm.LeversStateMachine(_grace_threshold=5)
 time_step = 108  # Milliseconds
 
 
@@ -107,13 +107,12 @@ def arduino_data_capture(_worker_object):
             bytes_in_buffer = arduino_serial.in_waiting
             if bytes_in_buffer > 0:
                 string_in = arduino_serial.read(bytes_in_buffer).decode('utf-8')
-
                 final_string = get_string(string_in)
                 if final_string:
                     poke_on, left_time, right_time, left_press, right_press = lever_string_to_ints(final_string)
 
-                    _worker_object.relic_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
-                                                            left_press=left_press, right_press=right_press)
+                    worker_object.relic_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
+                                                          left_press=left_press, right_press=right_press)
 
                     state_machine.do_transition(poke_on, left_press, right_press)
 
