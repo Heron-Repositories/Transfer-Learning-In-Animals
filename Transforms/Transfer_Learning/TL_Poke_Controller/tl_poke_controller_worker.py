@@ -27,14 +27,14 @@ air_puff_at_wrong_poke: bool
 trigger_string: str
 pandas_file: str
 pandas_trials_record: pd.DataFrame
-availability_period_is_running = 0  # 0 = Not running, 1 = Running, 2 = Just finished with reward collected
+availability_period_is_running = False
 reward_amount = 1
-reward_poke: bool # False is the Old / Right poke, True is the New / Left one
+reward_poke: bool  # False is the Old / Right poke, True is the New / Left one
 air_puff_thread_is_running: bool
 air_puff_timer = 0
 succesful_trials = 0
 success_failure_continue = None
-was_last_trial_successful = None
+was_last_trial_successful = False
 
 
 def add_timestamp_to_filename(save_file):
@@ -192,26 +192,26 @@ def start_availability_thread():
                         success_failure_continue = 0
 
         if success_failure_continue == 0:
-                try:
-                    success_sound()
-                    for _ in np.arange(reward_amount):
-                        arduino_serial.write('a'.encode('utf-8'))
-                        gu.accurate_delay(500)
-                    availability_period_is_running = False
-                    succesful_trials += 1
-                    print(succesful_trials)
-                    was_last_trial_successful = True
-                except Exception as e:
-                    print(e)
-                add_trial_state_to_trials_record(reward_amount)
+            try:
+                success_sound()
+                for _ in np.arange(reward_amount):
+                    arduino_serial.write('a'.encode('utf-8'))
+                    gu.accurate_delay(500)
+                availability_period_is_running = False
+                succesful_trials += 1
+                print(succesful_trials)
+                was_last_trial_successful = True
+            except Exception as e:
+                print(e)
+            add_trial_state_to_trials_record(reward_amount)
         elif step >= total_steps or success_failure_continue == 1:
             try:
                 failure_sound()
                 availability_period_is_running = False
+                was_last_trial_successful = False
             except Exception as e:
                 print(e)
             add_trial_state_to_trials_record(0)
-            was_last_trial_successful = False
         else:
             try:
                 availability_sound()
