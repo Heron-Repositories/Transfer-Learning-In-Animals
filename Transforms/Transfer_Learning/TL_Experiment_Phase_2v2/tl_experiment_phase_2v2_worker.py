@@ -97,17 +97,17 @@ def initialise(_worker_object):
 
     current_time = time.perf_counter()
 
-    worker_object.num_of_iters_to_update_relics_substate = -1
-    worker_object.relic_create_parameters_df(visualisation=parameters[0],
-                                             no_mtt=no_mtt,
-                                             reward_on_poke_delay=reward_on_poke_delay,
-                                             levers_state=levers_state,
-                                             min_max_distance_to_target='{}, {}'.format(min_distance_to_target, max_distance_to_target),
-                                             target_offsets=str(target_offsets),
-                                             trap_offsets=str(trap_offsets),
-                                             speed=speed,
-                                             must_lift_at_target=must_lift_at_target,
-                                             number_of_pellets=number_of_pellets)
+    worker_object.num_of_iters_to_update_savenodestate_substate = -1
+    worker_object.savenodestate_create_parameters_df(visualisation=parameters[0],
+                                                     no_mtt=no_mtt,
+                                                     reward_on_poke_delay=reward_on_poke_delay,
+                                                     levers_state=levers_state,
+                                                     min_max_distance_to_target='{}, {}'.format(min_distance_to_target, max_distance_to_target),
+                                                     target_offsets=str(target_offsets),
+                                                     trap_offsets=str(trap_offsets),
+                                                     speed=speed,
+                                                     must_lift_at_target=must_lift_at_target,
+                                                     number_of_pellets=number_of_pellets)
 
     vis = VisualisationDPG(worker_object.node_name, worker_object.node_index,
                            _visualisation_type='Single Pane Plot', _buffer=100)

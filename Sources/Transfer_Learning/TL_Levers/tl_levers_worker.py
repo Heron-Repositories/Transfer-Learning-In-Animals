@@ -99,8 +99,8 @@ def arduino_data_capture(_worker_object):
     while not loop_on:
         gu.accurate_delay(1)
 
-    _worker_object.num_of_iters_to_update_relics_substate = -1
-    _worker_object.relic_create_parameters_df(com_port=_worker_object.parameters[0])
+    _worker_object.num_of_iters_to_update_savenodestate_substate = -1
+    _worker_object.savenodestate_create_parameters_df(com_port=_worker_object.parameters[0])
 
     while loop_on:
         try:
@@ -111,8 +111,8 @@ def arduino_data_capture(_worker_object):
                 if final_string:
                     poke_on, left_time, right_time, left_press, right_press = lever_string_to_ints(final_string)
 
-                    worker_object.relic_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
-                                                          left_press=left_press, right_press=right_press)
+                    worker_object.savenodestate_update_substate_df(poke_on=poke_on, left_time=left_time, right_time=right_time,
+                                                                   left_press=left_press, right_press=right_press)
 
                     state_machine.do_transition(poke_on, left_press, right_press)
 

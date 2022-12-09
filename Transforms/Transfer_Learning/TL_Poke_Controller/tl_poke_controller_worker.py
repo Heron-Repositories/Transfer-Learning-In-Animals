@@ -97,11 +97,11 @@ def initialise(_worker_object):
     reward_poke = True
     set_poke_tray()
 
-    worker_object.relic_create_parameters_df(com_port=com_port, avail_time=avail_time, avail_freq=avail_freq,
-                                             succ_freq=succ_freq, fail_freq=fail_freq,
-                                             abort_at_wrong_poke=abort_at_wrong_poke,
-                                             air_puff_at_wrong_poke=air_puff_at_wrong_poke,
-                                             trigger_string=trigger_string, pandas_file=pandas_file)
+    worker_object.savenodestate_create_parameters_df(com_port=com_port, avail_time=avail_time, avail_freq=avail_freq,
+                                                     succ_freq=succ_freq, fail_freq=fail_freq,
+                                                     abort_at_wrong_poke=abort_at_wrong_poke,
+                                                     air_puff_at_wrong_poke=air_puff_at_wrong_poke,
+                                                     trigger_string=trigger_string, pandas_file=pandas_file)
     return True
 
 

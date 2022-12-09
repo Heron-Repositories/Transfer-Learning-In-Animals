@@ -54,9 +54,9 @@ def get_parameters(worker_object):
         predictor = DefaultPredictor(cfg)
 
     calculate_image_with_boxes = worker_object.parameters[3]
-    worker_object.relic_create_parameters_df(yaml_model=yaml_model, model_weights=model_weights,
-                                             num_of_classes=num_of_classes,
-                                             calculate_image_with_boxes=calculate_image_with_boxes)
+    worker_object.savenodestate_create_parameters_df(yaml_model=yaml_model, model_weights=model_weights,
+                                                     num_of_classes=num_of_classes,
+                                                     calculate_image_with_boxes=calculate_image_with_boxes)
     return True
 
 
