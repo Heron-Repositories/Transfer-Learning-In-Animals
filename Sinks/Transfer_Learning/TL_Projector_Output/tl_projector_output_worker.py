@@ -187,11 +187,11 @@ def initialise(_worker_object):
 
         vis.visualisation_on = True
 
-        worker_object.relic_create_parameters_df(overlay_image_file_name=overlay_image_file_name,
-                                                 screen_pos_x=screen_pos[0], screen_pos_y=screen_pos[1],
-                                                 overlay_image_pos_x=overlay_image_pos[0],
-                                                 overlay_image_pos_y=overlay_image_pos[1],
-                                                 show_inner_image=show_inner_image)
+        worker_object.savenodestate_create_parameters_df(overlay_image_file_name=overlay_image_file_name,
+                                                         screen_pos_x=screen_pos[0], screen_pos_y=screen_pos[1],
+                                                         overlay_image_pos_x=overlay_image_pos[0],
+                                                         overlay_image_pos_y=overlay_image_pos[1],
+                                                         show_inner_image=show_inner_image)
 
     except:
         return False
