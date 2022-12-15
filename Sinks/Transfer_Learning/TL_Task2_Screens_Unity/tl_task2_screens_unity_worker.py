@@ -144,7 +144,7 @@ def initialise(_worker_object):
     return True
 
 
-def work_function(data, parameters, relic_update_substate_df):
+def work_function(data, parameters, savenodestate_update_substate_df):
     global unity_socket_pub
     global previous_message
     global previous_opacity_target_trap
@@ -193,8 +193,7 @@ def work_function(data, parameters, relic_update_substate_df):
         previous_message = message_out
         unity_socket_pub.send_string(message_out)
 
-
-    relic_update_substate_df(message_to_Unity=message_out)
+    savenodestate_update_substate_df(message_to_Unity=message_out)
 
 
 def on_end_of_life():
