@@ -258,7 +258,7 @@ def experiment(data, parameters):
         pass
 
     message = data[1:]  # data[0] is the topic
-    message = Socket.reconstruct_array_from_bytes_message(message)
+    message = Socket.reconstruct_data_from_bytes_message(message)
     # The first element of the array is whether the rat is in the poke. The second is the milliseconds it has been
     # pressing either the left or the right lever (one is positive the other negative). If it is 0 then the rat is not
     # pressing a lever

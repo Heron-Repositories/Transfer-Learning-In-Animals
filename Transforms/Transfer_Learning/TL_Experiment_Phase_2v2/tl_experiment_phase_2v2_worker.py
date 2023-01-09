@@ -265,7 +265,7 @@ def experiment(data, parameters, savenodestate_update_substate_df):
 
     topic = data[0].decode('utf-8')
     message = data[1:]
-    message = Socket.reconstruct_array_from_bytes_message(message)
+    message = Socket.reconstruct_data_from_bytes_message(message)
 
     if 'Levers_Box_In' in topic:
         # The first element of the array is whether the rat is in the poke. The second is the milliseconds it has been

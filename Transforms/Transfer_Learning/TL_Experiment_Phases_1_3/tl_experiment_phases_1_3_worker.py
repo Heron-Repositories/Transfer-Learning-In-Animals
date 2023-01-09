@@ -165,7 +165,7 @@ def main_loop(data, parameters):
         return get_results_array_from_output_state_dict()
 
     message = data[1:]  # data[0] is the topic
-    data_array = Socket.reconstruct_array_from_bytes_message(message)
+    data_array = Socket.reconstruct_data_from_bytes_message(message)
     input_state[input_key] = data_array[0]
 
     # 4) If the input is "Shown Angle" then get the value and update the angle_shown_state

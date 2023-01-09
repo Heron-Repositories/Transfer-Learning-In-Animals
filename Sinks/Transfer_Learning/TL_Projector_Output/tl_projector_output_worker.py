@@ -209,7 +209,7 @@ def update_output(data, parameters):
     # Once the parameters are received at the starting of the graph then they cannot be updated any more.
 
     topic = data[0].decode('utf-8')
-    message = Socket.reconstruct_array_from_bytes_message(data[1:])
+    message = Socket.reconstruct_data_from_bytes_message(data[1:])
 
     if 'Trigger_Photodiode' in topic:
         if not photodiode_on:
