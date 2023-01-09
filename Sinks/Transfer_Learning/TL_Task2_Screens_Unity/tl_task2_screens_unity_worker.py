@@ -153,7 +153,7 @@ def work_function(data, parameters, savenodestate_update_substate_df):
 
     topic = data[0]
     message_in = data[1:]
-    message_in = Socket.reconstruct_array_from_bytes_message(message_in)[0]
+    message_in = Socket.reconstruct_data_from_bytes_message(message_in)[0]
 
     monitors = parameters[0]
     opacity_target_trap = parameters[2]
