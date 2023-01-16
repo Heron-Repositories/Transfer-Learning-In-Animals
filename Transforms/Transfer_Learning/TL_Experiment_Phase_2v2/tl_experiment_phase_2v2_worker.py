@@ -30,6 +30,7 @@ min_distance_to_target: int
 max_distance_to_target: int
 target_position_limits: []
 trap_offsets: []
+target_offsets: []
 speed: float
 must_lift_at_target: bool
 number_of_pellets: int
@@ -64,6 +65,7 @@ def initialise(_worker_object):
     global max_distance_to_target
     global target_position_limits
     global trap_offsets
+    global target_offsets
     global speed
     global must_lift_at_target
     global number_of_pellets
@@ -165,7 +167,7 @@ def initialise_man_target_trap_object():
     if not no_mtt:
         up_or_down = generate_up_or_down()
         man_targ_trap = mtt.MTT(min_distance_to_target, max_distance_to_target,
-                                target_position_limits, trap_offsets,
+                                target_offsets, trap_offsets,
                                 mean_dt, speed, must_lift_at_target, up_or_down)
 
 
@@ -221,7 +223,7 @@ def lever_press_time_with_interruption(lever_press_time_temp):
         interupted_lever_press_time = lever_press_time
 
 
-def experiment(data, parameters, relic_update_substate_df):
+def experiment(data, parameters, savenodestate_update_substate_df):
     global no_mtt
     global reward_on_poke_delay
     global levers_state
@@ -434,12 +436,12 @@ def experiment(data, parameters, relic_update_substate_df):
 
     current_state = [state_machine.current_state.name, state_machine.current_state.identifier,
                      state_machine.current_state.value, state_machine.current_state.initial]
-    relic_update_substate_df(state=current_state,
-                             command_to_screens=state_machine.command_to_screens,
-                             command_to_food_poke=state_machine.command_to_food_poke[0],
-                             command_to_vibration_arduino_controller=command_to_vibration_arduino_controller[0],
-                             reward_dealy=reward_on_poke_delay,
-                             reward_availability=availability_on)
+    savenodestate_update_substate_df(state=current_state,
+                                     command_to_screens=state_machine.command_to_screens,
+                                     command_to_food_poke=state_machine.command_to_food_poke[0],
+                                     command_to_vibration_arduino_controller=command_to_vibration_arduino_controller[0],
+                                     reward_dealy=reward_on_poke_delay,
+                                     reward_availability=availability_on)
 
     result = [state_machine.command_to_screens,
               state_machine.command_to_food_poke,
