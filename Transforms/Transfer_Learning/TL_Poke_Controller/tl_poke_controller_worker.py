@@ -274,7 +274,7 @@ def start_availability_or_switch_pokes(data, parameters):
     global success_failure_continue
 
     topic = data[0].decode('utf-8')
-    message = Socket.reconstruct_array_from_bytes_message(data[1:])
+    message = Socket.reconstruct_data_from_bytes_message(data[1:])
 
     air_puff_at_wrong_poke = parameters[5]
 
