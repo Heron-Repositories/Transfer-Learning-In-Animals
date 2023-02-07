@@ -102,6 +102,7 @@ def initialise(_worker_object):
                                                      abort_at_wrong_poke=abort_at_wrong_poke,
                                                      air_puff_at_wrong_poke=air_puff_at_wrong_poke,
                                                      trigger_string=trigger_string, pandas_file=pandas_file)
+
     return True
 
 
@@ -314,7 +315,6 @@ def start_availability_or_switch_pokes(data, parameters):
 
 
 def on_end_of_life():
-    global arduino_serial
     global air_puff_thread_is_running
     global pandas_file
     global pandas_trials_record
@@ -326,8 +326,12 @@ def on_end_of_life():
     air_puff_thread_is_running = False
     gu.accurate_delay(100)
 
-    arduino_serial.reset_input_buffer()
-    arduino_serial.close()
+    try:
+        global arduino_serial
+        arduino_serial.reset_input_buffer()
+        arduino_serial.close()
+    except:
+        pass
 
 
 if __name__ == "__main__":

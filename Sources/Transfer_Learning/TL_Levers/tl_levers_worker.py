@@ -124,9 +124,12 @@ def arduino_data_capture(_worker_object):
 
 
 def on_end_of_life():
-    global arduino_serial
-    arduino_serial.reset_input_buffer()
-    arduino_serial.close()
+    try:
+        global arduino_serial
+        arduino_serial.reset_input_buffer()
+        arduino_serial.close()
+    except:
+        pass
 
 
 if __name__ == "__main__":
