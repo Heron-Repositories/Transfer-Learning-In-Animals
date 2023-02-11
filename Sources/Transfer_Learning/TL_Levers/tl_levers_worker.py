@@ -18,7 +18,7 @@ arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
 state_machine = sm.LeversStateMachine(_grace_threshold=5)
-time_step = 108  # Milliseconds
+time_step = 12  # Milliseconds
 
 
 def initialise(_worker_object):
