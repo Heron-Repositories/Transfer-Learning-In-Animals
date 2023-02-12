@@ -18,7 +18,7 @@ arduino_serial: serial.Serial
 loop_on = False
 buffer = ''
 state_machine = sm.LeversStateMachine(_grace_threshold=5)
-time_step = 108  # Milliseconds
+time_step = 12  # Milliseconds
 
 
 def initialise(_worker_object):
@@ -67,19 +67,6 @@ def lever_string_to_ints(string):
     return poke_on, left_time, right_time, left_press, right_press
 
 
-'''
-def get_lever_pressing_time(poke_on, left_time, right_time):
-    """
-    Returns the time a Lever is pressed
-    :return: A list with whether the poke beam break is broken (if yes then 1) and the time in ms that one of the
-    levers is being pressed. Positive time means Left lever, negative means Right
-    """
-    if left_time != 0:
-        return [poke_on, left_time]
-    else:
-        return [poke_on, right_time]
-'''
-
 def get_lever_pressing_time():
     global state_machine
 
@@ -100,6 +87,7 @@ def arduino_data_capture(_worker_object):
         gu.accurate_delay(1)
 
     _worker_object.savenodestate_create_parameters_df(com_port=_worker_object.parameters[0])
+    _worker_object.num_of_iters_to_update_savenodestate_substate = -1
 
     while loop_on:
         try:

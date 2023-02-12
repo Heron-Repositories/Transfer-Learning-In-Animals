@@ -68,6 +68,7 @@ def get_parameters(_worker_object):
     worker_object.savenodestate_create_parameters_df(monitors=monitors, rotation=rotation,
                                                      opacity_target_trap=opacity_target_trap,
                                                      opacity_cue=opacity_cue)
+    _worker_object.num_of_iters_to_update_savenodestate_substate = -1
 
     return True
 
