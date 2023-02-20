@@ -273,6 +273,7 @@ def start_availability_or_switch_pokes(data, parameters):
     global reward_amount
     global reward_poke
     global success_failure_continue
+    global succesful_trials
 
     topic = data[0].decode('utf-8')
     message = Socket.reconstruct_data_from_bytes_message(data[1:])
@@ -300,7 +301,7 @@ def start_availability_or_switch_pokes(data, parameters):
                         avail_thread.start()
                 except Exception as e:
                     print(e)
-        result = [np.array([availability_period_is_running, was_last_trial_successful])]
+        result = [np.array([availability_period_is_running, was_last_trial_successful, succesful_trials])]
 
     elif 'Poke' in topic:
         reward_poke = message[0]
@@ -309,7 +310,7 @@ def start_availability_or_switch_pokes(data, parameters):
         if reward_poke == 'Right' or reward_poke == 'Old':
             reward_poke = False
         set_poke_tray()
-        result = [np.array([availability_period_is_running, was_last_trial_successful])]
+        result = [np.array([availability_period_is_running, was_last_trial_successful, succesful_trials])]
 
     return result
 
