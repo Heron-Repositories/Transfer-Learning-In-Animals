@@ -87,7 +87,7 @@ def arduino_data_capture(_worker_object):
         gu.accurate_delay(1)
 
     _worker_object.savenodestate_create_parameters_df(com_port=_worker_object.parameters[0])
-    _worker_object.num_of_iters_to_update_savenodestate_substate = -1
+    _worker_object.num_of_iters_to_update_savenodestate_substate = 2000
 
     while loop_on:
         try:
