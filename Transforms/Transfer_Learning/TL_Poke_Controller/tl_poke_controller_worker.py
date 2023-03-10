@@ -153,8 +153,6 @@ def start_availability_thread():
 
     total_steps = int(avail_time / sleep_dt)
 
-    availability_period_is_running = True
-
     add_trial_state_to_trials_record('Start')
 
     bytes_in_buffer = arduino_serial.in_waiting
@@ -197,19 +195,19 @@ def start_availability_thread():
                 success_sound()
                 for _ in np.arange(reward_amount):
                     arduino_serial.write('a'.encode('utf-8'))
-                    gu.accurate_delay(500)
+                    gu.accurate_delay(700)
+                was_last_trial_successful = True
                 availability_period_is_running = False
                 succesful_trials += 1
                 print(succesful_trials)
-                was_last_trial_successful = True
             except Exception as e:
                 print(e)
             add_trial_state_to_trials_record(reward_amount)
         elif step >= total_steps or success_failure_continue == 1:
             try:
                 failure_sound()
-                availability_period_is_running = False
                 was_last_trial_successful = False
+                availability_period_is_running = False
             except Exception as e:
                 print(e)
             add_trial_state_to_trials_record(0)
@@ -294,9 +292,11 @@ def start_availability_or_switch_pokes(data, parameters):
                 message = message[0]
             if trigger_string == message[0] or trigger_string == 'number':
                 if trigger_string == 'number':
-                    reward_amount = int(message[0])
+                    if int(message[0]) != -1:
+                        reward_amount = int(message[0])
                 try:
                     if message[0] != -1 and message[0] != '-1':  # That allows the result to update without starting another thread
+                        availability_period_is_running = True
                         avail_thread = threading.Thread(target=start_availability_thread)
                         avail_thread.start()
                 except Exception as e:
