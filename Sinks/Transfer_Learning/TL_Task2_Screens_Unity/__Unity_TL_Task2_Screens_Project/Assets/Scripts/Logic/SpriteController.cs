@@ -80,13 +80,13 @@ public class SpriteController : MonoBehaviour
         transform.GetComponent<Image>().color = new Color(current_color.r, current_color.g, current_color.b, opacity);
     }
 
-    List<int> GetAllSpritesStates(string sprites_message)
+    List<float> GetAllSpritesStates(string sprites_message)
     {
         string[] sprites_messages = sprites_message.Split(',');
-        List<int> sprites_states = new List<int>();
+        List<float> sprites_states = new List<float>();
         foreach (string sm in sprites_messages)
         {
-            int state = int.Parse(sm.Substring(sm.IndexOf("=")).Substring(1));
+            float state = float.Parse(sm.Substring(sm.IndexOf("=")).Substring(1));
             sprites_states.Add(state);
             //Debug.Log(string.Format("{0} || {1}", sm, sprites_states.Last()));
         }
@@ -94,7 +94,7 @@ public class SpriteController : MonoBehaviour
         return sprites_states;
     }
 
-    int GetStateForThisSprite(List<int> sprites_states)
+    float GetStateForThisSprite(List<float> sprites_states)
     {
         int sprite_type = new int();
 
@@ -106,22 +106,22 @@ public class SpriteController : MonoBehaviour
         return sprites_states[sprite_type];
     }
 
-    void HideOrShow(int state)
+    void HideOrShow(float state)
     {
         this.gameObject.SetActive(false);
         //Debug.Log(string.Format("{0} is {1} and screen is {2}", transform.name, state, shownOnScreen));
-        if (state != 0 && shownOnScreen)
+        if (state != 0f && shownOnScreen)
         {
             this.gameObject.SetActive(true);
             //Debug.Log(string.Format("{0} is made Active", transform.name));
         }
     }
 
-    void DoAnimationIfCue(int state)
+    void DoAnimationIfCue(float state)
     {
         //If the sprite is the Cue and it is shown on screen and the state sent by the Heron node is 1 then animate it (that means that states != 1 will not do anything except 0 which will hide it)
         //Debug.Log(state);
-        if (transform.name.Contains("Cue") && shownOnScreen && state == 1)
+        if (transform.name.Contains("Cue") && shownOnScreen && state == 1f)
         {
            // Debug.Log("Anim invoked");
             if (transform.name.Contains("Right"))
@@ -131,7 +131,7 @@ public class SpriteController : MonoBehaviour
         }
     }
 
-    void ChangeTransformIfNotCue(int state)
+    void ChangeTransformIfNotCue(float state)
     {
         if (!transform.name.Contains("Cue") && shownOnScreen)
         {
@@ -167,9 +167,9 @@ public class SpriteController : MonoBehaviour
 
     void DoMotion(string sprites_message)
     {
-        List<int> sprites_states = GetAllSpritesStates(sprites_message);
+        List<float> sprites_states = GetAllSpritesStates(sprites_message);
 
-        int state = GetStateForThisSprite(sprites_states);
+        float state = GetStateForThisSprite(sprites_states);
 
         ChangeTransformIfNotCue(state);
 
