@@ -25,6 +25,7 @@ from Heron import general_utils as gu
 unity_socket_pub: zmq.Socket
 unity_socket_rep: zmq.Socket
 unity_process: subprocess.Popen
+experiment_name: str
 monitors: str
 previous_monitors = None
 sprites: dict
@@ -44,6 +45,7 @@ previous_message = 'Hi'
 
 
 def get_parameters(_worker_object):
+    global experiment_name
     global monitors
     global previous_monitors
     global rotation
@@ -54,12 +56,13 @@ def get_parameters(_worker_object):
 
     try:
         parameters = _worker_object.parameters
-        monitors = parameters[0]
+        experiment_name = parameters[0]
+        monitors = parameters[1]
         previous_monitors = monitors
-        rotation = parameters[1]
-        opacity_target_trap = parameters[2]
+        rotation = parameters[2]
+        opacity_target_trap = parameters[3]
         previous_opacity_target_trap = opacity_target_trap
-        opacity_cue = parameters[3]
+        opacity_cue = parameters[4]
         previous_opacity_cue = opacity_cue
     except Exception as e:
         print(e)
@@ -92,8 +95,9 @@ def connect_sockets():
 
 def start_unity_exe():
     global unity_process
+    global experiment_name
     try:
-        unity_exe = path.join(node_dir, '__Unity_TL_Task2_Screens_Project', 'Builds', 'TL_Task2_Screens_Unity.exe')
+        unity_exe = path.join(node_dir, '__Unity_TL_Task2_Screens_Project', 'Builds', '{}.exe'.format(experiment_name))
         unity_process = subprocess.Popen(unity_exe)
         print(unity_process)
     except Exception as e:
