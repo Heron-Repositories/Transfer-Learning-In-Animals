@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="688"
+   height="688"
+   viewBox="0 0 182.03333 182.03333"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   sodipodi:docname="Checkered Square.svg"
+   inkscape:export-filename="Checkered Square.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#111111"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="1"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px"
+     showgrid="false"
+     inkscape:zoom="0.914906"
+     inkscape:cx="540.49268"
+     inkscape:cy="321.89099"
+     inkscape:window-width="2560"
+     inkscape:window-height="1361"
+     inkscape:window-x="-9"
+     inkscape:window-y="-9"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <rect
+       style="fill:#ffffff;stroke:#000000;stroke-width:1.03451;stroke-dasharray:none;stroke-opacity:1"
+       id="rect163"
+       width="57.17382"
+       height="57.17382"
+       x="62.429756"
+       y="62.429756" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:5.18335;stroke-dasharray:none;stroke-opacity:1"
+       d="M 61.820928,81.806086 119.69509,81.705624"
+       id="path1730" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:5.18336;stroke-dasharray:none;stroke-opacity:1"
+       d="m 61.504848,102.33146 57.873512,0.26527"
+       id="path1730-2" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:4.20345;stroke-dasharray:none;stroke-opacity:1"
+       d="M 71.778665,120.33105 71.704839,62.129969"
+       id="path1730-56-3-1" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:4.69175;stroke-dasharray:none;stroke-opacity:1"
+       d="M 84.889092,120.33126 84.797117,62.131179"
+       id="path1730-56-7-1" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:4.20345;stroke-dasharray:none;stroke-opacity:1"
+       d="M 97.981369,120.33104 97.907543,62.129969"
+       id="path1730-56-0" />
+    <path
+       style="fill:#ffffff;stroke:#000000;stroke-width:4.20348;stroke-dasharray:none;stroke-opacity:1"
+       d="m 111.08268,120.33104 -0.0737,-58.201073"
+       id="path1730-56-3-0" />
+  </g>
+</svg>
