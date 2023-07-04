@@ -65,37 +65,55 @@ public class SpriteControllerForObjectDiscrimination : MonoBehaviour
         transform.GetComponent<Image>().color = new Color(current_color.r, current_color.g, current_color.b, opacity);
     }
 
-    List<float> GetAllSpritesStates(string sprites_message)
+    List<float[]> GetAllSpritesStates(string sprites_message)
     {
         string[] sprites_messages = sprites_message.Split(',');
-        List<float> sprites_states = new List<float>();
+        List<float[]> sprites_states = new List<float[]>();
         foreach (string sm in sprites_messages)
-        {
-            float state = float.Parse(sm.Substring(sm.IndexOf("=")).Substring(1));
+        {            
+            string str_after_equals = sm.Substring(sm.IndexOf("=")).Substring(1);
+            float[] state = new float[2];
+            state[0] = float.Parse(str_after_equals.Substring(0, str_after_equals.IndexOf("R")));
+            state[1] = float.Parse(str_after_equals.Substring(str_after_equals.IndexOf("R")).Substring(1));
             sprites_states.Add(state);
-            //Debug.Log(string.Format("{0} || {1}", sm, sprites_states[sprites_states.Count-1]));
+            //Debug.Log(string.Format("{0} || {1}", state[0], state[1]));
         }
-
+        
         return sprites_states;
     }
 
-    float GetStateForThisSprite(List<float> sprites_states)
+    float[] GetStateForThisSprite(List<float[]> sprites_states)
     {
         int sprite_type = new int();
 
         if (transform.name.Contains("Cue")) sprite_type = 0;
-        if (transform.name.Contains("Line")) sprite_type = 1;
-        if (transform.name.Contains("Circle")) sprite_type = 2;
-        if (transform.name.Contains("Square")) sprite_type = 3;
+        if (transform.name.Contains("Line"))
+        {
+            if (transform.name.Contains("Checkered")) sprite_type = 1;
+            if (transform.name.Contains("White")) sprite_type = 2;
+            if (transform.name.Contains("Black")) sprite_type = 3;
+        }
+        if (transform.name.Contains("Circle"))
+        {
+            if (transform.name.Contains("Checkered")) sprite_type = 4;
+            if (transform.name.Contains("White")) sprite_type = 5;
+            if (transform.name.Contains("Black")) sprite_type = 6;
+        }
+        if (transform.name.Contains("Square"))
+        {
+            if (transform.name.Contains("Checkered")) sprite_type = 7;
+            if (transform.name.Contains("White")) sprite_type = 8;
+            if (transform.name.Contains("Black")) sprite_type = 9;
+        }
 
         return sprites_states[sprite_type];
     }
 
-    void HideOrShow(float state)
+    void HideOrShow(float state_pos)
     {
         this.gameObject.SetActive(false);
-        //Debug.Log(string.Format("{0} is {1} and screen is {2}", transform.name, state, shownOnScreen));
-        if (state != 0f && shownOnScreen)
+        //Debug.Log(string.Format("{0} is {1} and screen is {2}", transform.name, state_pos, shownOnScreen));
+        if (state_pos != 0f && shownOnScreen)
         {
             this.gameObject.SetActive(true);
             //Debug.Log(string.Format("{0} is made Active", transform.name));
@@ -116,35 +134,39 @@ public class SpriteControllerForObjectDiscrimination : MonoBehaviour
         }
     }
 
-    void ChangeTransformIfNotCue(float state)
+    void ChangeTransformIfNotCue(float[] state)
     {
+        float state_pos = state[0];
+        float state_rot = state[1];
         if (!transform.name.Contains("Cue") && shownOnScreen)
         {
             if (transform.name.Contains("Right"))
             {
                 transform.rotation = Quaternion.Euler(Vector3.forward * 90);
                 int starting_position = 0;
-                transform.localPosition = new Vector3(transform.localPosition.x, starting_position + state, transform.localPosition.z);
+                transform.localPosition = new Vector3(transform.localPosition.x, starting_position + state_pos, transform.localPosition.z);
             }
             else
             {
                 int starting_position = -972;
-                transform.localPosition = new Vector3(starting_position + state, transform.localPosition.y, transform.localPosition.z);
+                transform.localPosition = new Vector3(starting_position + state_pos, transform.localPosition.y, transform.localPosition.z);
             }
+            transform.rotation = Quaternion.Euler(new Vector3(0, 0, transform.rotation.z + state_rot));
+
         }
     }
 
     void DoUpdate(string sprites_message)
     {
-        List<float> sprites_states = GetAllSpritesStates(sprites_message);
+        List<float[]> sprites_states = GetAllSpritesStates(sprites_message);
 
-        float state = GetStateForThisSprite(sprites_states);
+        float[] state = GetStateForThisSprite(sprites_states);
 
         ChangeTransformIfNotCue(state);
 
-        HideOrShow(state);
+        HideOrShow(state[0]);
 
-        DoAnimationIfCue(state);
+        DoAnimationIfCue(state[0]);
 
     }
 }

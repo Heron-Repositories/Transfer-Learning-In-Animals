@@ -56,13 +56,20 @@ def get_parameters(_worker_object):
 
     try:
         parameters = _worker_object.parameters
-        experiment_name = parameters[0]
-        monitors = parameters[1]
+        if len(parameters) == 4:
+            experiment_name = 'TransfLearn_RotationTranslation'
+            monitors = parameters[0]
+            rotation = parameters[1]
+            opacity_target_trap = parameters[2]
+            opacity_cue = parameters[3]
+        else:
+            experiment_name = parameters[0]
+            monitors = parameters[1]
+            rotation = parameters[2]
+            opacity_target_trap = parameters[3]
+            opacity_cue = parameters[4]
         previous_monitors = monitors
-        rotation = parameters[2]
-        opacity_target_trap = parameters[3]
         previous_opacity_target_trap = opacity_target_trap
-        opacity_cue = parameters[4]
         previous_opacity_cue = opacity_cue
     except Exception as e:
         print(e)
