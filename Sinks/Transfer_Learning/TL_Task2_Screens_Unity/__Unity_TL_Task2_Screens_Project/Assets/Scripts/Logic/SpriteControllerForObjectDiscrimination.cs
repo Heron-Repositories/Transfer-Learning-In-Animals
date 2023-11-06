@@ -7,6 +7,7 @@ using System;
 public class SpriteControllerForObjectDiscrimination : MonoBehaviour
 {
     private bool shownOnScreen;
+    Sprite Cue_Failure, Cue_Success;
 
     // Start is called before the first frame update
     void Start()
@@ -19,6 +20,9 @@ public class SpriteControllerForObjectDiscrimination : MonoBehaviour
         EventManager.Instance.onUpdateCueOpacity.AddListener(DoCueOpacityUpdate);
 
         shownOnScreen = false;
+
+        Cue_Failure = Resources.Load<Sprite>("cue_failure");
+        Cue_Success = Resources.Load<Sprite>("cue_success");
     }
 
 
@@ -124,8 +128,16 @@ public class SpriteControllerForObjectDiscrimination : MonoBehaviour
     {
         //If the sprite is the Cue and it is shown on screen and the state sent by the Heron node is 1 then animate it (that means that states != 1 will not do anything except 0 which will hide it)
         //Debug.Log(state);
-        if (transform.name.Contains("Cue") && shownOnScreen && state == 1f)
+        if (transform.name.Contains("Cue") && shownOnScreen)
         {
+            if(state == 1f)
+            {
+                gameObject.GetComponent<Image>().sprite = Cue_Success;
+            }
+            else if(state == -1f)
+            {
+                gameObject.GetComponent<Image>().sprite = Cue_Failure;
+            }
            // Debug.Log("Anim invoked");
             if (transform.name.Contains("Right"))
                 EventManager.Instance.onCueAnimate.Invoke("Right");
